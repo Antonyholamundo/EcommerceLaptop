@@ -1,0 +1,5454 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+database.js
+package.json
+productos.json
+public/admin.html
+public/index.html
+public/js/admin.js
+public/js/cart.js
+public/js/catalog.js
+public/js/product.js
+public/product.html
+public/style.css
+scraper.js
+server.js
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="database.js">
+const fs = require('fs');
+const path = require('path');
+
+// Ubicación de la base de datos portátil JSON
+const dbPath = path.join(__dirname, 'productos.json');
+
+/**
+ * Carga los datos del archivo JSON local.
+ * Si el archivo no existe, retorna una lista vacía.
+ * @returns {Array} La lista de productos almacenados.
+ */
+function loadData() {
+  try {
+    if (fs.existsSync(dbPath)) {
+      const content = fs.readFileSync(dbPath, 'utf8');
+      return JSON.parse(content);
+    }
+  } catch (error) {
+    console.error('Error al cargar la base de datos JSON:', error);
+  }
+  return [];
+}
+
+/**
+ * Guarda la lista de productos en el archivo JSON.
+ * @param {Array} data - La lista completa de productos.
+ */
+function saveData(data) {
+  try {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error al guardar la base de datos JSON:', error);
+  }
+}
+
+/**
+ * Inserta un producto o lo actualiza si el SKU ya existe (Simula UPSERT en SQLite)
+ * @param {string} sku - ID único del producto (TEXT PRIMARY KEY)
+ * @param {string} nombre - Nombre del producto (TEXT)
+ * @param {number} precio - Precio único extraído del e-commerce (REAL)
+ * @param {string} imagenUrl - URL de la imagen del producto (TEXT)
+ * @returns {Object} Resultado de la operación compatible con SQLite run()
+ */
+function upsertProduct(sku, nombre, precio, imagenUrl) {
+  const data = loadData();
+  const existingIndex = data.findIndex(p => p.sku === sku);
+  
+  // Obtener la fecha local formateada estilo SQLite (YYYY-MM-DD HH:MM:SS)
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const ultimaActualizacion = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+  const product = {
+    sku,
+    nombre,
+    precio: precio,
+    imagen_url: imagenUrl,
+    ultima_actualizacion: ultimaActualizacion
+  };
+
+  if (existingIndex !== -1) {
+    // Si existe, actualizamos los valores (UPDATE)
+    data[existingIndex] = product;
+  } else {
+    // Si no existe, lo insertamos (INSERT)
+    data.push(product);
+  }
+
+  saveData(data);
+  return { changes: 1 };
+}
+
+/**
+ * Obtiene todos los productos del archivo
+ * Ordenados por la fecha de última actualización (más recientes primero)
+ * @returns {Array} Lista ordenada de productos
+ */
+function getAllProducts() {
+  const data = loadData();
+  // Ordenar descendente según la fecha
+  return data.sort((a, b) => {
+    return new Date(b.ultima_actualizacion) - new Date(a.ultima_actualizacion);
+  });
+}
+
+module.exports = {
+  upsertProduct,
+  getAllProducts
+};
+</file>
+
+<file path="package.json">
+{
+  "name": "ecuacompu-scraper",
+  "version": "1.0.0",
+  "description": "Prototipo local de Web Scraping, SQLite, Express y HTMX",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.44.0"
+  }
+}
+</file>
+
+<file path="productos.json">
+[
+  {
+    "sku": "COMQUANB01I7825",
+    "nombre": "NOT. QUASAD NB01 I7-1165 G7 8GB 256GB 15.6INCH HDMI RED 3USB USB-C GRIS",
+    "precio": 687.7,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/24/COMQUANB01I7825.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMHPXC7GP3AT",
+    "nombre": "NOT. HP 255R G10 AMD Ryzen 5 7535U 16GB 512GB-SSD 15.6Inch HDMI DP USB-C USB-A FreeDos Silver",
+    "precio": 790.86,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMHPXC7GP3AT.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMQUANB01I7161",
+    "nombre": "NOT. QUASAD NB01 I7-1165 G7 16GB 1TB 15.6INCH TECL. ILUM. HDMI RED 5USB WIN11-PRO GRIS",
+    "precio": 911.2,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/25/COMQUANB01I7161.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMLEN83K700G8U",
+    "nombre": "NOT. LENOVO SLIM TOUCH 15ARP10 Ryzen 7 170 16GB 512GB 15.3Inch HDMI 3USB W11-H Luna Gray",
+    "precio": 912.52,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMLEN83K700G8U.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMAPLMHFA4LLAS",
+    "nombre": "NOT. APPLE MacBook Neo A18 Pro 8GB 256GB 13Inch 2USB-C macOS Silver",
+    "precio": 932.36,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMAPLMHFA4LLAS.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMAPLMHFD4LLA",
+    "nombre": "NOT. APPLE MacBook Neo A18 Pro 8GB 512GB 13Inch 2USB-C macOS Citrus",
+    "precio": 932.36,
+    "ultima_actualizacion": "2026-06-01 15:51:15"
+  },
+  {
+    "sku": "COMAPLMHFF4LLAI",
+    "nombre": "NOT. APPLE MacBook Neo A18 Pro 8GB 256GB 13Inch 2USB-C macOS Indigo",
+    "precio": 932.36,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMAPLMHFF4LLAI.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMAPLMHFH4LLAB",
+    "nombre": "NOT. APPLE MacBook Neo A18 Pro 8GB 256GB 13Inch 2USB-C macOS Blush",
+    "precio": 932.36,
+    "ultima_actualizacion": "2026-06-01 15:51:15"
+  },
+  {
+    "sku": "COMDYN2AU017004",
+    "nombre": "NOT. DYNABOOK Satellite Pro C50-K Intel i7-1355U 16GB-DDR5 512GB 15.6Inch HDMI 4USB Free-Dos Blue 1y",
+    "precio": 960.13,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMDYN2AU017004.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMAPLMHFC4LLA",
+    "nombre": "NOT. APPLE MacBook Neo A18 Pro 8GB 512GB 13Inch 2USB-C macOS Silver",
+    "precio": 1089.74,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMAPLMHFC4LLA.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMDYN20U1YG05X",
+    "nombre": "NOT. DYNABOOK TECRA A40-K I5-1235U 16GB 512GB-SSD 14INCH 4USB WIN11-PRO MYSTIC-BLUE 3Y",
+    "precio": 1124.13,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/25/COMDYN20U1YG05X.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMDYNPNM10UU09",
+    "nombre": "NOT. DYNABOOK TECRA A40-M Intel Core Ultra 7 155U 16GB-DDR5 1TB-M.2 14Inch HDMI 4USB-C FREE DOS Blue",
+    "precio": 1155.87,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMDYNPNM10UU09.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMDYNPNM10UU11",
+    "nombre": "NOT. DYNABOOK TECRA A40-M Intel Core Ultra 7 155U 16GB-DDR5 1TB-M.2 14Inch HDMI 4USB-C WP Blue Night",
+    "precio": 1183.64,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMDYNPNM10UU11.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMHPXA24Z2LT",
+    "nombre": "NOT. HP ProBook 440 G11 Core Ultra 5 125U 16GB 512GB 14INCH IPS HDMI 2USB-C USB-A W11-Pro Silver",
+    "precio": 1183.64,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/24/COMHPXA24Z2LT.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMDYNPNL20UV05",
+    "nombre": "NOT. DYNABOOK TECRA A60-M Intel Core Ultra 7 255H 16GB-DDR5 1TB-M.2 16Inch HDMI 4USB-C FRE DOS Blue",
+    "precio": 1184.96,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMDYNPNL20UV05.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMHPXA27NWLA",
+    "nombre": "NOT. HP ProBook 460 G11 Ultra 5 125U 16GB 512GB 16INCH HDMI DP 2USB-C W11-Pro Silver",
+    "precio": 1191.57,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/24/COMHPXA27NWLA.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMDYNED11U04RT",
+    "nombre": "NOT. DYNABOOK Portege X45W-M AMD Ryzen 7 250 16GB 512GB 14Inch TOUCH 2n1 + PEN HDMI W11-PRO AZUL 3y",
+    "precio": 1319.86,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMDYNED11U04RT.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMLEN83S0000US",
+    "nombre": "NOT. LENOVO 15ARP10E AMD Ryzen 7 7735HD 16GB 512GB 15.6Inch RTX-4050-6GB HDMI 3USB W11-H Gris",
+    "precio": 1392.59,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMLEN83S0000US.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMHPXA24Z9LA",
+    "nombre": "NOT. HP ProBook 460 G11 Ultra 7 155U 16GB 512GB-DDR5 16Inch HDMI 2USB-C W11-Pro Silver",
+    "precio": 1397.88,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMHPXA24Z9LA.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMHPXA24Z6LT",
+    "nombre": "NOT. HP ProBook 460 G11 Ultra 7 155U 16GB 1TB 16Inch HDMI 2USB-C W11-Pro Silver",
+    "precio": 1579.06,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/24/COMHPXA24Z6LT.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMAPLMDH74LLA",
+    "nombre": "NOT. Apple MacBook Air M5 16GB 512GB 13.6Pulg. 2USB-C macOS Silver",
+    "precio": 1593.61,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/26/COMAPLMDH74LLA.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  },
+  {
+    "sku": "COMDELCTV12",
+    "nombre": "NOT. DELL PRO 16 PC16250 Core7-150U 16GB 512GB-M.2 16Inc-FHD+ W11Pro Black 1YB",
+    "precio": 1613.45,
+    "imagen_url": "https://coretms.tecnomegastore.ec/assets/images/main/25/COMDELCTV12.webp",
+    "ultima_actualizacion": "2026-06-01 15:59:04"
+  }
+]
+</file>
+
+<file path="public/admin.html">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración y Scraping - NoteStore Ecuador</title>
+  
+  <!-- Favicon SVG -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+
+  <!-- HTMX CDN -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+  <!-- Enlace CSS Modular (incluye clases de admin-theme) -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="admin-theme">
+
+  <div class="admin-container">
+    <!-- Header -->
+    <header class="admin-header">
+      <a href="/" class="admin-btn-back">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:16px;height:16px;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Volver a la tienda
+      </a>
+      
+      <div class="logo-link">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+        </svg>
+        <span style="color:#ffffff;">NoteStore <span class="logo-accent">Ecuador</span></span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero Panel de Control Scraper -->
+      <section class="admin-panel-hero">
+        <h1 class="admin-hero-title">Control de Raspado y Catálogo</h1>
+        <p class="admin-hero-desc">
+          Este panel interactivo permite gestionar el scraping automatizado de la sección de laptops en
+          <strong>Tecnomegastore</strong>.
+          La información es extraída de forma asíncrona mediante agentes y sincronizada directamente en nuestra base de datos local JSON.
+        </p>
+
+        <!-- PANEL DE ACCIONES -->
+        <div class="admin-controls-panel">
+          <div style="display:flex;flex-direction:column;gap:0.2rem;">
+            <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--color-text-muted);font-weight:600;">Sitio Destino (E-Commerce)</span>
+            <a href="https://tecnomegastore.ec/category/1/3N003-pc-laptop-portatil-notebook" target="_blank" rel="noopener" style="color:var(--color-cyan);font-weight:500;font-size:0.9rem;display:flex;align-items:center;gap:0.35rem;">
+              tecnomegastore.ec/category/...
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </a>
+          </div>
+
+          <!-- Botón HTMX -->
+          <button id="scrape-btn" class="admin-btn-scrape" hx-post="/api/scrape" hx-target="#tabla-productos" hx-indicator="#loading-indicator">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            Actualizar Catálogo
+          </button>
+        </div>
+
+        <!-- Indicador de Carga HTMX -->
+        <div id="loading-indicator" class="admin-indicator-box htmx-indicator">
+          <div class="admin-spinner"></div>
+          <div>
+            <div style="font-size:0.9rem;font-weight:600;color:var(--color-text-primary);">Raspando datos en tiempo real...</div>
+            <div style="font-size:0.75rem;color:var(--color-text-secondary);">
+              Playwright Chromium Stealth está analizando el catálogo de laptops de Tecnomegastore de forma segura. Por favor, espera.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabla de los Últimos 5 Productos Sincronizados -->
+      <section class="admin-table-section" style="margin-bottom:2rem;">
+        <h2 class="admin-table-title">Últimos 5 Productos Sincronizados</h2>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Nombre del Producto</th>
+              <th>Precio</th>
+              <th>Última Actualización</th>
+            </tr>
+          </thead>
+          <tbody id="last-products-tbody">
+            <!-- Cargado por admin.js -->
+            <tr>
+              <td colspan="4" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando registros...</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Grid De Laptops (Cargado por HTMX) -->
+      <section class="admin-table-section">
+        <h2 class="admin-table-title">Catálogo Completo Registrado (Visualización Técnica)</h2>
+        
+        <!-- 
+          - hx-get: Carga automática al iniciar la página.
+          - hx-trigger: Se dispara al cargar ('load') la página.
+          - hx-target: Inserta las tarjetas dentro de este div.
+        -->
+        <div id="tabla-productos" class="catalog-grid" hx-get="/api/productos" hx-trigger="load" hx-indicator="#loading-indicator">
+          <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--color-text-muted);">
+            <div class="admin-spinner" style="margin: 0 auto 1rem;"></div>
+            Cargando catálogo local...
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
+</file>
+
+<file path="public/index.html">
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoteStore Ecuador - Tecnología al Mejor Precio</title>
+  <meta name="description"
+    content="Encuentra las mejores laptops y equipos tecnológicos en NoteStore Ecuador. Precios sincronizados en tiempo real y catálogo completo de marcas de primer nivel.">
+
+  <!-- Favicon SVG -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22º.9em%22 font-size=%2290%22></text></svg>">
+
+  <!-- Enlace CSS Modular -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <!-- ==========================================
+       HEADER FIJO (Sticky)
+       ========================================== -->
+  <header class="header-sticky">
+    <div class="header-container">
+      <!-- Logo Izquierda -->
+      <a href="/" class="logo-link" id="home-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+        </svg>
+        <span>NoteStore <span class="logo-accent">Ecuador</span></span>
+      </a>
+
+      <!-- Barra de Búsqueda Centro -->
+      <div class="search-wrapper">
+        <div class="search-input-container">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" id="search-box" class="search-input" placeholder="Buscar laptops, marcas, modelos..."
+            autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Carrito Derecha -->
+      <div class="header-actions">
+        <button class="cart-toggle-btn" id="cart-toggle-btn" aria-label="Ver carrito">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span class="cart-count-badge" id="cart-badge-count">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       HERO BANNER
+       ========================================== -->
+  <section class="hero-banner">
+    <div class="hero-container">
+      <div class="hero-status-badge">
+        <span class="hero-status-dot"></span>
+        <span>Precios sincronizados hoy</span>
+      </div>
+      <h1 class="hero-title">Tecnología al mejor precio</h1>
+      <p class="hero-subtitle">Laptops y equipos con precios actualizados en tiempo real desde Tecnomegastore</p>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       LAYOUT PRINCIPAL
+       ========================================== -->
+  <main class="main-layout">
+
+    <!-- Sidebar de Filtros (Columna Izquierda) -->
+    <aside class="filter-sidebar" id="filter-sidebar">
+
+      <!-- Filtro: Categorías (Marcas) -->
+      <div class="filter-section">
+        <div class="filter-title-container" id="filter-brand-header">
+          <span>Categorías (Marcas)</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+            stroke="currentColor" id="brand-chevron">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+        <div class="filter-content" id="filter-brand-content">
+          <!-- Checkboxes de marcas generados dinámicamente -->
+          <div id="brands-checkbox-list">
+            <p style="font-size:0.8rem;color:var(--text-secondary);">Cargando marcas...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro: Rango de Precio -->
+      <div class="filter-section">
+        <div class="filter-title-container" id="filter-price-header">
+          <span>Rango de precio</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+            stroke="currentColor" id="price-chevron">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+        <div class="filter-content" id="filter-price-content">
+          <div class="price-slider-container">
+            <!-- Slider Doble Simulado con Controles Modernos -->
+            <div class="slider-track-wrapper">
+              <div class="slider-track-highlight" id="price-track-highlight"></div>
+              <div class="slider-thumb" id="slider-thumb-min" style="left: 0%;"></div>
+              <div class="slider-thumb" id="slider-thumb-max" style="left: 100%;"></div>
+            </div>
+
+            <!-- Inputs Numéricos Directos -->
+            <div class="price-inputs-grid">
+              <div class="price-input-box">
+                <span>$</span>
+                <input type="number" id="price-input-min" value="0" min="0">
+              </div>
+              <div class="price-input-box">
+                <span>$</span>
+                <input type="number" id="price-input-max" value="3000" min="0">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro: Ordenar por -->
+      <div class="filter-section">
+        <div class="filter-title-container" id="filter-sort-header">
+          <span>Ordenar por</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+            stroke="currentColor" id="sort-chevron">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+        <div class="filter-content" id="filter-sort-content">
+          <label class="radio-label">
+            <input type="radio" name="sort-order" value="relevancia" checked>
+            Relevancia (defecto)
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sort-order" value="precio-asc">
+            Precio: menor a mayor
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sort-order" value="precio-desc">
+            Precio: mayor a menor
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sort-order" value="recientes">
+            Más recientes
+          </label>
+        </div>
+      </div>
+
+      <!-- Botón Limpiar Filtros -->
+      <button class="btn-outline-clear" id="btn-clear-filters">Limpiar filtros</button>
+    </aside>
+
+    <!-- Área de Catálogo (Columna Derecha) -->
+    <section class="catalog-container">
+
+      <!-- Controles Superiores de Catálogo -->
+      <div class="catalog-top-bar">
+        <div>
+          <span class="products-found-text" id="products-count-text">0</span> productos encontrados
+        </div>
+
+        <div class="catalog-controls-right">
+          <!-- Mostrar cantidad select -->
+          <div class="limit-select-wrapper">
+            <span>Mostrar:</span>
+            <select id="items-per-page-select" class="limit-select" aria-label="Productos por página">
+              <option value="12">12</option>
+              <option value="24" selected>24</option>
+              <option value="48">48</option>
+            </select>
+          </div>
+
+          <!-- Toggle de Vista Grid/Lista -->
+          <div class="view-toggle-group">
+            <button class="view-toggle-btn active" id="view-grid-btn" title="Vista Cuadrícula"
+              aria-label="Vista Cuadrícula">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button class="view-toggle-btn" id="view-list-btn" title="Vista Lista" aria-label="Vista Lista">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenedor del Catálogo Principal -->
+      <div id="products-display-wrapper">
+        <div class="products-grid" id="products-display-grid">
+          <!-- Cards generadas dinámicamente por catalog.js -->
+          <div class="empty-catalog-state">
+            <svg class="laptop-placeholder-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+            </svg>
+            <p>Cargando catálogo tecnológico en tiempo real...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination-container" id="pagination-display">
+        <!-- Render dinámico de paginación de catalog.js -->
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ==========================================
+       CARRITO DESLIZABLE (Drawer)
+       ========================================== -->
+  <div class="cart-drawer-overlay" id="cart-drawer-overlay"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <!-- Cabecera -->
+    <div class="cart-drawer-header">
+      <span class="cart-drawer-title" id="cart-drawer-title">Mi carrito (0 productos)</span>
+      <button class="cart-drawer-close-btn" id="cart-close-btn" aria-label="Cerrar carrito">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Cuerpo (Lista de items) -->
+    <div class="cart-drawer-body" id="cart-drawer-body">
+      <!-- Items agregados por localStorage -->
+      <div class="empty-cart-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+        <p>Tu carrito está vacío</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cart-drawer-footer">
+      <div class="cart-summary-row">
+        <span>Subtotal</span>
+        <span class="cart-subtotal-val" id="cart-subtotal-val">$0.00</span>
+      </div>
+      <p class="cart-shipping-notice">Envío calculado al finalizar</p>
+      <button class="btn-checkout-drawer" id="cart-checkout-btn">Finalizar compra</button>
+      <button class="btn-close-drawer" id="cart-continue-btn">Seguir comprando</button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TOAST NOTIFICATIONS (POPUP)
+       ========================================== -->
+  <div class="toast-container" id="toast-notification">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toast-text">¡Enlace copiado!</span>
+  </div>
+
+  <!-- ==========================================
+       FOOTER
+       ========================================== -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>NoteStore Ecuador</h4>
+        <p>Tu e-commerce de laptops y dispositivos tecnológicos número uno en Ecuador. Precios de referencia
+          sincronizados directamente de distribuidores mayoristas oficiales para darte el mejor precio del mercado.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Links rápidos</h4>
+        <ul class="footer-links-list">
+          <li><a href="/">Catálogo</a></li>
+          <li><a href="/admin?key=admin2026">Panel de control scraper</a></li>
+          <li><a href="https://tecnomegastore.ec" target="_blank" rel="noopener">Tecnomegastore EC</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Información técnica</h4>
+        <p>Base de datos: JSON nativa estructurada por SKU.<br>Raspado en segundo plano: Playwright Stealth y Express
+          local. 100% libre de cookies intrusivas.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 NoteStore Ecuador · Precios referenciados de Tecnomegastore Ecuador. Todos los derechos reservados.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/cart.js"></script>
+  <script src="/js/catalog.js"></script>
+</body>
+
+</html>
+</file>
+
+<file path="public/js/admin.js">
+/**
+ * admin.js — Lógica de panel admin de NoteStore Ecuador
+ */
+
+// 1. Obtener y renderizar la tabla con los 5 productos más recientemente actualizados
+async function fetchLastProducts() {
+  try {
+    const response = await fetch('/api/productos/json');
+    if (!response.ok) return;
+    const products = await response.json();
+
+    // Ordenar descendente por la fecha de última actualización
+    products.sort((a, b) => {
+      return new Date(b.ultima_actualizacion) - new Date(a.ultima_actualizacion);
+    });
+
+    const latest = products.slice(0, 5);
+    const tbody = document.getElementById('last-products-tbody');
+    
+    if (latest.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align:center;padding:2rem;color:var(--color-text-muted);">
+            No hay productos registrados en el archivo productos.json.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = latest.map(p => {
+      const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p.precio);
+      return `
+        <tr>
+          <td class="sku">${p.sku}</td>
+          <td style="color:#ffffff;">${p.nombre}</td>
+          <td class="price">${formattedPrice}</td>
+          <td>${p.ultima_actualizacion}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error al cargar últimos productos actualizados:', error);
+  }
+}
+
+// 2. Proteger la ruta a nivel cliente en caso de que alguien acceda directo a /admin.html
+function verifyKey() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const key = urlParams.get('key');
+  if (key !== 'admin2026') {
+    // Redirigir a la tienda principal
+    window.location.href = '/';
+  }
+}
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+  verifyKey();
+  fetchLastProducts();
+});
+
+// Registrar un listener para que HTMX recargue los 5 productos de la tabla al finalizar el scraping
+document.body.addEventListener('htmx:afterOnLoad', () => {
+  console.log('HTMX cargado exitosamente. Recargando tabla de últimos sincronizados...');
+  fetchLastProducts();
+});
+</file>
+
+<file path="public/js/cart.js">
+/**
+ * cart.js — Lógica de Carrito de Compras para NoteStore Ecuador
+ */
+
+// Estado del Carrito
+let cart = [];
+
+// Elementos DOM
+const cartDrawer = document.getElementById('cart-drawer');
+const cartOverlay = document.getElementById('cart-drawer-overlay');
+const cartToggleBtn = document.getElementById('cart-toggle-btn');
+const cartCloseBtn = document.getElementById('cart-close-btn');
+const cartContinueBtn = document.getElementById('cart-continue-btn');
+const cartBadgeCount = document.getElementById('cart-badge-count');
+const cartDrawerTitle = document.getElementById('cart-drawer-title');
+const cartDrawerBody = document.getElementById('cart-drawer-body');
+const cartSubtotalVal = document.getElementById('cart-subtotal-val');
+const cartCheckoutBtn = document.getElementById('cart-checkout-btn');
+const toastNotification = document.getElementById('toast-notification');
+const toastText = document.getElementById('toast-text');
+
+// Inicializar Carrito
+window.addEventListener('DOMContentLoaded', () => {
+  loadCartFromStorage();
+  setupCartDrawerEvents();
+});
+
+// Cargar desde localStorage
+function loadCartFromStorage() {
+  const stored = localStorage.getItem('notestore_cart');
+  if (stored) {
+    try {
+      cart = JSON.parse(stored);
+    } catch (e) {
+      console.error('Error al parsear carrito de localStorage', e);
+      cart = [];
+    }
+  }
+  updateCartUI();
+}
+
+// Guardar en localStorage
+function saveCartToStorage() {
+  localStorage.setItem('notestore_cart', JSON.stringify(cart));
+  updateCartUI();
+}
+
+// Configurar Eventos del Drawer
+function setupCartDrawerEvents() {
+  if (cartToggleBtn) cartToggleBtn.addEventListener('click', openCart);
+  if (cartCloseBtn) cartCloseBtn.addEventListener('click', closeCart);
+  if (cartContinueBtn) cartContinueBtn.addEventListener('click', closeCart);
+  if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
+
+  // Botón Finalizar Compra
+  if (cartCheckoutBtn) {
+    cartCheckoutBtn.addEventListener('click', () => {
+      if (cart.length === 0) {
+        showToast('El carrito está vacío', 'error');
+        return;
+      }
+      
+      // Redirigir al e-commerce Tecnomegastore
+      // Usamos el primer artículo como referencia o la búsqueda general de laptops en Tecnomegastore
+      const firstItem = cart[0];
+      const targetUrl = `https://tecnomegastore.ec/product/laptop?code=${firstItem.sku}`;
+      window.open(targetUrl, '_blank', 'noopener');
+    });
+  }
+}
+
+// Abrir Drawer
+function openCart() {
+  cartDrawer.classList.add('open');
+  cartOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden'; // Evitar scroll del fondo
+}
+
+// Cerrar Drawer
+function closeCart() {
+  cartDrawer.classList.remove('open');
+  cartOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Añadir al Carrito (Disponible globalmente)
+window.addToCart = function(sku, name, price, imgUrl) {
+  const existing = cart.find(item => item.sku === sku);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({
+      sku,
+      name,
+      price: parseFloat(price),
+      imgUrl,
+      quantity: 1
+    });
+  }
+  
+  saveCartToStorage();
+  animateCartBadge();
+  openCart(); // Abrir el drawer automáticamente para una UX premium
+};
+
+// Animación del Badge del Carrito
+function animateCartBadge() {
+  if (cartBadgeCount) {
+    cartBadgeCount.classList.remove('animate');
+    void cartBadgeCount.offsetWidth; // Trigger reflow para reiniciar CSS animation
+    cartBadgeCount.classList.add('animate');
+    
+    // Quitar clase tras finalizar animación
+    setTimeout(() => {
+      cartBadgeCount.classList.remove('animate');
+    }, 200);
+  }
+}
+
+// Actualizar Interfaz del Carrito
+function updateCartUI() {
+  // A. Cantidad Total
+  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+  
+  // Badge en cabecera
+  if (cartBadgeCount) cartBadgeCount.textContent = totalItems;
+  
+  // Título del drawer
+  if (cartDrawerTitle) {
+    cartDrawerTitle.textContent = `Mi carrito (${totalItems} ${totalItems === 1 ? 'producto' : 'productos'})`;
+  }
+
+  // B. Render Body
+  if (cart.length === 0) {
+    cartDrawerBody.innerHTML = `
+      <div class="empty-cart-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+        <p>Tu carrito está vacío</p>
+      </div>
+    `;
+    cartSubtotalVal.textContent = '$0.00';
+    return;
+  }
+
+  cartDrawerBody.innerHTML = cart.map(item => {
+    const itemSubtotal = item.price * item.quantity;
+    const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(itemSubtotal);
+    
+    const fallbackSvg = `data:image/svg+xml;utf8,<svg class=%22laptop-placeholder-svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%221.2%22 xmlns=%22http://www.w3.org/2000/svg%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25%22 /></svg>`;
+    
+    const imgHtml = item.imgUrl ? 
+      `<img src="${item.imgUrl}" alt="${item.name}" onerror="this.src='${fallbackSvg}';this.onerror=null;">` : 
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:36px;height:36px;opacity:0.6;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" /></svg>`;
+
+    return `
+      <div class="cart-item-card">
+        <div class="cart-item-img">
+          ${imgHtml}
+        </div>
+        <div class="cart-item-info">
+          <div>
+            <div class="cart-item-title" title="${item.name}">${item.name}</div>
+            <div class="cart-item-sku">${item.sku}</div>
+          </div>
+          <div class="cart-item-controls">
+            <!-- Selector de Cantidad -->
+            <div class="cart-item-quantity">
+              <button onclick="updateQuantity('${item.sku}', ${item.quantity - 1})">-</button>
+              <input type="text" readonly value="${item.quantity}">
+              <button onclick="updateQuantity('${item.sku}', ${item.quantity + 1})">+</button>
+            </div>
+            
+            <!-- Botón Eliminar -->
+            <button class="cart-item-remove-btn" onclick="removeFromCart('${item.sku}')">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>
+              Eliminar
+            </button>
+          </div>
+          <div class="cart-item-price" style="margin-top:0.25rem;">${formattedPrice}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // C. Calcular Subtotal
+  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  cartSubtotalVal.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(subtotal);
+}
+
+// Actualizar Cantidad
+window.updateQuantity = function(sku, quantity) {
+  if (quantity < 1) {
+    removeFromCart(sku);
+    return;
+  }
+  const item = cart.find(i => i.sku === sku);
+  if (item) {
+    item.quantity = quantity;
+    saveCartToStorage();
+  }
+};
+
+// Eliminar del Carrito
+window.removeFromCart = function(sku) {
+  cart = cart.filter(item => item.sku !== sku);
+  saveCartToStorage();
+};
+
+// Toast Notifications Helper (Disponible globalmente)
+window.showToast = function(text, type = 'success') {
+  if (!toastNotification) return;
+  
+  toastText.textContent = text;
+  const icon = toastNotification.querySelector('svg');
+  if (type === 'success') {
+    icon.style.color = 'var(--success)';
+    icon.style.display = 'block';
+  } else {
+    icon.style.display = 'none';
+  }
+  
+  toastNotification.classList.add('show');
+  
+  setTimeout(() => {
+    toastNotification.classList.remove('show');
+  }, 2500);
+};
+</file>
+
+<file path="public/js/catalog.js">
+/**
+ * catalog.js — Lógica de catálogo para NoteStore Ecuador
+ */
+
+// Variables de estado
+let allProducts = [];
+let filteredProducts = [];
+let selectedBrands = [];
+let minPrice = 0;
+let maxPrice = 3000;
+let minPriceLimit = 0;
+let maxPriceLimit = 3000;
+let searchQuery = '';
+let currentSort = 'relevancia';
+let itemsPerPage = 24;
+let currentPage = 1;
+let currentView = 'grid'; // 'grid' o 'list'
+
+// Elementos DOM
+const productsDisplayGrid = document.getElementById('products-display-grid');
+const productsCountText = document.getElementById('products-count-text');
+const itemsPerPageSelect = document.getElementById('items-per-page-select');
+const viewGridBtn = document.getElementById('view-grid-btn');
+const viewListBtn = document.getElementById('view-list-btn');
+const paginationDisplay = document.getElementById('pagination-display');
+const searchBox = document.getElementById('search-box');
+const btnClearFilters = document.getElementById('btn-clear-filters');
+const brandsCheckboxList = document.getElementById('brands-checkbox-list');
+
+// Elementos del Slider de Precio
+const sliderThumbMin = document.getElementById('slider-thumb-min');
+const sliderThumbMax = document.getElementById('slider-thumb-max');
+const priceTrackHighlight = document.getElementById('price-track-highlight');
+const priceInputMin = document.getElementById('price-input-min');
+const priceInputMax = document.getElementById('price-input-max');
+
+// Chevron Collapsibles
+const brandHeader = document.getElementById('filter-brand-header');
+const priceHeader = document.getElementById('filter-price-header');
+const sortHeader = document.getElementById('filter-sort-header');
+const brandContent = document.getElementById('filter-brand-content');
+const priceContent = document.getElementById('filter-price-content');
+const sortContent = document.getElementById('filter-sort-content');
+const brandChevron = document.getElementById('brand-chevron');
+const priceChevron = document.getElementById('price-chevron');
+const sortChevron = document.getElementById('sort-chevron');
+
+// Cargar catálogo inicial
+window.addEventListener('DOMContentLoaded', () => {
+  setupCollapsibles();
+  setupViewToggle();
+  setupSearch();
+  setupPaginationControls();
+  setupPriceSlider();
+  setupSortOrder();
+  setupClearFilters();
+  
+  fetchProducts();
+});
+
+// 1. Obtener productos de la API
+async function fetchProducts() {
+  try {
+    const response = await fetch('/api/productos/json');
+    if (!response.ok) throw new Error('No se pudo cargar el catálogo');
+    allProducts = await response.json();
+    
+    // Configurar límites dinámicos del slider de precio
+    const prices = allProducts.map(p => p.precio).filter(p => typeof p === 'number');
+    if (prices.length > 0) {
+      minPriceLimit = Math.floor(Math.min(...prices));
+      maxPriceLimit = Math.ceil(Math.max(...prices));
+    } else {
+      minPriceLimit = 0;
+      maxPriceLimit = 3000;
+    }
+    
+    minPrice = minPriceLimit;
+    maxPrice = maxPriceLimit;
+    
+    // Sincronizar inputs
+    priceInputMin.value = minPrice;
+    priceInputMin.min = minPriceLimit;
+    priceInputMin.max = maxPriceLimit;
+    priceInputMax.value = maxPrice;
+    priceInputMax.min = minPriceLimit;
+    priceInputMax.max = maxPriceLimit;
+    
+    updateSliderVisuals();
+    
+    // Generar sidebar de marcas
+    renderBrandCheckboxes();
+    
+    // Filtrar y renderizar inicial
+    applyFiltersAndRender();
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    productsDisplayGrid.innerHTML = `
+      <div class="empty-catalog-state">
+        <p style="color:var(--danger);font-weight:600;">Error al conectar con la base de datos local</p>
+        <p>Por favor, asegúrate de que el servidor está corriendo e intenta de nuevo.</p>
+      </div>
+    `;
+  }
+}
+
+// 2. Extracción de Marca
+function parseBrand(nombre) {
+  const brandKeywords = ['Apple', 'HP', 'Lenovo', 'Dell', 'Dynabook', 'Quasad', 'Samsung', 'Asus', 'Acer', 'MSI'];
+  const nameLower = (nombre || '').toLowerCase();
+  for (const b of brandKeywords) {
+    if (nameLower.includes(b.toLowerCase())) {
+      return b;
+    }
+  }
+  return 'Otros';
+}
+
+// 3. Parser de Especificaciones
+function parseSpecs(nombre) {
+  const lower = (nombre || '').toLowerCase();
+  
+  // Procesador
+  let processor = 'Intel / AMD';
+  if (lower.includes('i7') || lower.includes('intel i7') || lower.includes('core i7')) {
+    processor = 'Intel Core i7';
+  } else if (lower.includes('i5') || lower.includes('intel i5') || lower.includes('core i5')) {
+    processor = 'Intel Core i5';
+  } else if (lower.includes('i3') || lower.includes('intel i3') || lower.includes('core i3')) {
+    processor = 'Intel Core i3';
+  } else if (lower.includes('ultra 7') || lower.includes('core ultra 7')) {
+    processor = 'Intel Core Ultra 7';
+  } else if (lower.includes('ultra 5') || lower.includes('core ultra 5')) {
+    processor = 'Intel Core Ultra 5';
+  } else if (lower.includes('ryzen 7') || lower.includes('ryzen7')) {
+    processor = 'AMD Ryzen 7';
+  } else if (lower.includes('ryzen 5') || lower.includes('ryzen5')) {
+    processor = 'AMD Ryzen 5';
+  } else if (lower.includes('ryzen 3') || lower.includes('ryzen3')) {
+    processor = 'AMD Ryzen 3';
+  } else if (lower.includes('m1')) {
+    processor = 'Apple M1';
+  } else if (lower.includes('m2')) {
+    processor = 'Apple M2';
+  } else if (lower.includes('m3')) {
+    processor = 'Apple M3';
+  } else if (lower.includes('m4')) {
+    processor = 'Apple M4';
+  } else if (lower.includes('m5')) {
+    processor = 'Apple M5';
+  } else if (lower.includes('a18 pro')) {
+    processor = 'Apple A18 Pro';
+  }
+  
+  // RAM
+  let ram = 'N/D';
+  const ramMatches = [...lower.matchAll(/(\d+)\s*(gb|tb)\b/ig)];
+  // Buscamos cuál de los matches es RAM y cuál es disco.
+  // Usualmente RAM es menor y disco es mayor, ej: 8GB RAM, 256GB Disco.
+  if (ramMatches.length > 0) {
+    const gbValues = ramMatches.map(m => {
+      let num = parseInt(m[1]);
+      if (m[2].toLowerCase() === 'tb') num *= 1024;
+      return { str: m[0].toUpperCase(), val: num };
+    });
+    
+    // RAM suele ser la menor cantidad de GB (ej: 8, 16 o 32)
+    gbValues.sort((a, b) => a.val - b.val);
+    ram = gbValues[0].str;
+  }
+  
+  // Storage (Disco Duro)
+  let storage = 'N/D';
+  const ssdMatch = lower.includes('ssd') || lower.includes('m.2');
+  const ramMatchesForDisco = [...lower.matchAll(/(\d+)\s*(gb|tb)\b/ig)];
+  if (ramMatchesForDisco.length > 1) {
+    const gbValues = ramMatchesForDisco.map(m => {
+      let num = parseInt(m[1]);
+      if (m[2].toLowerCase() === 'tb') num *= 1024;
+      return { str: m[0].toUpperCase(), val: num };
+    });
+    gbValues.sort((a, b) => a.val - b.val);
+    storage = gbValues[1].str + (ssdMatch ? ' SSD' : '');
+  } else {
+    // Si solo hay un match, revisamos si indica disco
+    if (lower.includes('ssd') || lower.includes('m.2') || lower.includes('disco')) {
+      const storageOnlyMatch = lower.match(/(\d+)\s*(gb|tb)\b/i);
+      if (storageOnlyMatch) storage = storageOnlyMatch[0].toUpperCase() + ' SSD';
+    }
+  }
+
+  // Pantalla
+  let screen = 'N/D';
+  const screenMatch = lower.match(/(\d+(?:\.\d+)?)\s*(inch|pulg|”|")/i);
+  if (screenMatch) {
+    screen = screenMatch[1] + '"';
+  }
+
+  // OS
+  let os = 'Windows 11';
+  if (lower.includes('macos') || lower.includes('mac os') || lower.includes('apple mac')) {
+    os = 'macOS';
+  } else if (lower.includes('freedos') || lower.includes('free dos') || lower.includes('free-dos')) {
+    os = 'FreeDOS';
+  } else if (lower.includes('win11-pro') || lower.includes('win11 pro') || lower.includes('w11-pro') || lower.includes('w11pro')) {
+    os = 'Windows 11 Pro';
+  }
+
+  // Color
+  let color = 'N/D';
+  const colorKeywords = ['silver', 'gray', 'grey', 'blue', 'black', 'citrus', 'indigo', 'blush', 'plata', 'gris', 'negro', 'azul', 'luna gray', 'blue night', 'mystic-blue'];
+  for (const ck of colorKeywords) {
+    if (lower.includes(ck)) {
+      color = ck.charAt(0).toUpperCase() + ck.slice(1);
+      break;
+    }
+  }
+
+  return { processor, ram, storage, screen, os, color };
+}
+
+// 4. Renderizar checkboxes de marcas en el sidebar
+function renderBrandCheckboxes() {
+  const brandCounts = {};
+  allProducts.forEach(p => {
+    const brand = parseBrand(p.nombre);
+    brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+  });
+
+  const brands = Object.keys(brandCounts).sort();
+  
+  if (brands.length === 0) {
+    brandsCheckboxList.innerHTML = '<p style="font-size:0.8rem;color:var(--text-secondary);">No se encontraron marcas.</p>';
+    return;
+  }
+
+  brandsCheckboxList.innerHTML = brands.map(brand => `
+    <label class="checkbox-label" for="brand-${brand}">
+      <span class="checkbox-item">
+        <input type="checkbox" id="brand-${brand}" value="${brand}" ${selectedBrands.includes(brand) ? 'checked' : ''}>
+        <span>${brand}</span>
+      </span>
+      <span class="brand-count">(${brandCounts[brand]})</span>
+    </label>
+  `).join('');
+
+  // Escuchar cambios
+  brandsCheckboxList.querySelectorAll('input').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (e.target.checked) {
+        selectedBrands.push(val);
+      } else {
+        selectedBrands = selectedBrands.filter(b => b !== val);
+      }
+      currentPage = 1;
+      applyFiltersAndRender();
+    });
+  });
+}
+
+// 5. Aplicar filtros, orden y paginación en memoria
+function applyFiltersAndRender() {
+  // A. Filtrado por Búsqueda y Marca
+  filteredProducts = allProducts.filter(p => {
+    const name = p.nombre || '';
+    const sku = p.sku || '';
+    const brand = parseBrand(name);
+    
+    // Coincidencia de búsqueda
+    const matchesSearch = 
+      name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      sku.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      brand.toLowerCase().includes(searchQuery.toLowerCase());
+      
+    // Coincidencia de marca (OR)
+    const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(brand);
+    
+    // Coincidencia de precio
+    const priceVal = p.precio || 0;
+    const matchesPrice = priceVal >= minPrice && priceVal <= maxPrice;
+
+    return matchesSearch && matchesBrand && matchesPrice;
+  });
+
+  // B. Ordenamiento
+  if (currentSort === 'precio-asc') {
+    filteredProducts.sort((a, b) => a.precio - b.precio);
+  } else if (currentSort === 'precio-desc') {
+    filteredProducts.sort((a, b) => b.precio - a.precio);
+  } else if (currentSort === 'recientes') {
+    filteredProducts.sort((a, b) => new Date(b.ultima_actualizacion) - new Date(a.ultima_actualizacion));
+  } else {
+    // Relevancia: orden original por defecto
+    filteredProducts.sort((a, b) => a.sku.localeCompare(b.sku));
+  }
+
+  // C. Actualizar textos
+  productsCountText.textContent = filteredProducts.length;
+
+  // D. Renderizar la página actual
+  renderCatalogPage();
+  renderPagination();
+}
+
+// 6. Renderizar las tarjetas de la página activa
+function renderCatalogPage() {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
+  const pageProducts = filteredProducts.slice(startIndex, endIndex);
+
+  if (pageProducts.length === 0) {
+    productsDisplayGrid.className = 'products-grid'; // reset
+    productsDisplayGrid.innerHTML = `
+      <div class="empty-catalog-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p>No se encontraron productos que coincidan con los filtros seleccionados.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const isGrid = currentView === 'grid';
+  productsDisplayGrid.className = isGrid ? 'products-grid' : 'products-list';
+
+  productsDisplayGrid.innerHTML = pageProducts.map(p => {
+    const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p.precio);
+    const dateOnly = p.ultima_actualizacion ? p.ultima_actualizacion.split(' ')[0] : '';
+    const brand = parseBrand(p.nombre);
+    const specs = parseSpecs(p.nombre);
+    
+    // Placeholder de imagen
+    const imageElement = p.imagen_url ? 
+      `<img src="${p.imagen_url}" alt="${p.nombre}" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg class=%22laptop-placeholder-svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%221.2%22 xmlns=%22http://www.w3.org/2000/svg%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25%22 /></svg>';this.onerror=null;'">` : 
+      `<div class="laptop-placeholder-svg" style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:48px;height:48px;opacity:0.6;">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+         </svg>
+       </div>`;
+
+    if (isGrid) {
+      return `
+        <div class="grid-card">
+          <div class="card-image-wrapper">
+            <span class="brand-badge">${brand}</span>
+            <a href="/product.html?sku=${p.sku}">${imageElement}</a>
+          </div>
+          <div class="card-sku">${p.sku}</div>
+          <h3 class="card-title" title="${p.nombre}">
+            <a href="/product.html?sku=${p.sku}">${p.nombre}</a>
+          </h3>
+          
+          <div class="stock-indicator">
+            <span class="stock-dot in"></span>
+            <span class="stock-text in">En stock</span>
+          </div>
+
+          <div class="sync-date-text">Actualizado: ${dateOnly}</div>
+
+          <div class="card-price-row">
+            <div class="card-price">${formattedPrice}</div>
+          </div>
+
+          <div class="card-actions-wrapper">
+            <button class="btn-primary-cart" onclick="addToCart('${p.sku}', '${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, '${p.imagen_url || ''}')">
+              Agregar al carrito
+            </button>
+            <a href="https://tecnomegastore.ec/product/laptop?code=${p.sku}" target="_blank" rel="noopener" class="btn-secondary-link">
+              Ver en tienda →
+            </a>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="list-card">
+          <div class="card-image-wrapper">
+            <span class="brand-badge">${brand}</span>
+            <a href="/product.html?sku=${p.sku}">${imageElement}</a>
+          </div>
+          <div class="list-card-details">
+            <div class="card-sku">${p.sku}</div>
+            <h3 class="card-title" title="${p.nombre}" style="font-size:1rem;height:auto;-webkit-line-clamp:1;margin-bottom:0.25rem;">
+              <a href="/product.html?sku=${p.sku}">${p.nombre}</a>
+            </h3>
+            
+            <div class="list-specs-container">
+              <span class="list-spec-tag">💻 ${specs.processor}</span>
+              <span class="list-spec-tag">💾 RAM: ${specs.ram}</span>
+              <span class="list-spec-tag">💽 Disco: ${specs.storage}</span>
+              <span class="list-spec-tag">🖥️ Pantalla: ${specs.screen}</span>
+              <span class="list-spec-tag">💿 OS: ${specs.os}</span>
+            </div>
+
+            <div class="stock-indicator" style="margin-top:0.75rem;margin-bottom:0.25rem;">
+              <span class="stock-dot in"></span>
+              <span class="stock-text in">En stock</span>
+            </div>
+            
+            <div class="sync-date-text" style="margin-bottom:0;">Actualizado: ${dateOnly}</div>
+          </div>
+          
+          <div class="list-card-right">
+            <div class="card-price" style="font-size:1.4rem;">${formattedPrice}</div>
+            <div class="card-actions-wrapper">
+              <button class="btn-primary-cart" onclick="addToCart('${p.sku}', '${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, '${p.imagen_url || ''}')">
+                Agregar al carrito
+              </button>
+              <a href="https://tecnomegastore.ec/product/laptop?code=${p.sku}" target="_blank" rel="noopener" class="btn-secondary-link">
+                Ver en tienda →
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+}
+
+// 7. Renderizar botones de paginación
+function renderPagination() {
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  if (totalPages <= 1) {
+    paginationDisplay.innerHTML = '';
+    return;
+  }
+
+  let buttonsHtml = '';
+
+  // Botón Anterior
+  buttonsHtml += `
+    <button class="pagination-btn ${currentPage === 1 ? 'disabled' : ''}" 
+            onclick="changePage(${currentPage - 1})" 
+            ${currentPage === 1 ? 'disabled' : ''} 
+            aria-label="Página anterior">
+      &lt;
+    </button>
+  `;
+
+  // Calcular las páginas a mostrar (primera, última, y vecinas de la activa)
+  const range = 2; // Vecinas a mostrar a cada lado
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+      buttonsHtml += `
+        <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+          ${i}
+        </button>
+      `;
+    } else if (i === 2 && currentPage - range > 2) {
+      buttonsHtml += `<span class="pagination-btn dots">...</span>`;
+      i = currentPage - range - 1; // saltar
+    } else if (i === totalPages - 1 && currentPage + range < totalPages - 1) {
+      buttonsHtml += `<span class="pagination-btn dots">...</span>`;
+      i = totalPages - 1; // saltar
+    }
+  }
+
+  // Botón Siguiente
+  buttonsHtml += `
+    <button class="pagination-btn ${currentPage === totalPages ? 'disabled' : ''}" 
+            onclick="changePage(${currentPage + 1})" 
+            ${currentPage === totalPages ? 'disabled' : ''} 
+            aria-label="Página siguiente">
+      &gt;
+    </button>
+  `;
+
+  paginationDisplay.innerHTML = buttonsHtml;
+}
+
+// Cambiar de página
+window.changePage = function(page) {
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderCatalogPage();
+  renderPagination();
+  // Scroll hacia arriba del catálogo
+  window.scrollTo({ top: 180, behavior: 'smooth' });
+};
+
+// 8. Eventos de controles e inputs de Filtros
+function setupCollapsibles() {
+  const toggle = (header, content, chevron) => {
+    header.addEventListener('click', () => {
+      content.classList.toggle('hidden');
+      header.classList.toggle('collapsed');
+    });
+  };
+  toggle(brandHeader, brandContent, brandChevron);
+  toggle(priceHeader, priceContent, priceChevron);
+  toggle(sortHeader, sortContent, sortChevron);
+}
+
+function setupViewToggle() {
+  viewGridBtn.addEventListener('click', () => {
+    currentView = 'grid';
+    viewGridBtn.classList.add('active');
+    viewListBtn.classList.remove('active');
+    renderCatalogPage();
+  });
+
+  viewListBtn.addEventListener('click', () => {
+    currentView = 'list';
+    viewListBtn.classList.add('active');
+    viewGridBtn.classList.remove('active');
+    renderCatalogPage();
+  });
+
+  itemsPerPageSelect.addEventListener('change', (e) => {
+    itemsPerPage = parseInt(e.target.value);
+    currentPage = 1;
+    applyFiltersAndRender();
+  });
+}
+
+function setupSearch() {
+  let debounceTimeout;
+  searchBox.addEventListener('input', (e) => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => {
+      searchQuery = e.target.value;
+      currentPage = 1;
+      applyFiltersAndRender();
+    }, 300);
+  });
+}
+
+function setupSortOrder() {
+  document.querySelectorAll('input[name="sort-order"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      currentSort = e.target.value;
+      currentPage = 1;
+      applyFiltersAndRender();
+    });
+  });
+}
+
+// 9. Slider de precios dual funcional
+function setupPriceSlider() {
+  // Manejo directo de Inputs Numéricos
+  const handleMinInput = () => {
+    let val = parseInt(priceInputMin.value);
+    if (isNaN(val)) val = minPriceLimit;
+    if (val < minPriceLimit) val = minPriceLimit;
+    if (val > maxPrice) val = maxPrice;
+    minPrice = val;
+    priceInputMin.value = val;
+    updateSliderVisuals();
+    currentPage = 1;
+    applyFiltersAndRender();
+  };
+
+  const handleMaxInput = () => {
+    let val = parseInt(priceInputMax.value);
+    if (isNaN(val)) val = maxPriceLimit;
+    if (val > maxPriceLimit) val = maxPriceLimit;
+    if (val < minPrice) val = minPrice;
+    maxPrice = val;
+    priceInputMax.value = val;
+    updateSliderVisuals();
+    currentPage = 1;
+    applyFiltersAndRender();
+  };
+
+  priceInputMin.addEventListener('change', handleMinInput);
+  priceInputMax.addEventListener('change', handleMaxInput);
+
+  // Lógica de arrastre de Thumbs en el slider
+  let isDraggingMin = false;
+  let isDraggingMax = false;
+
+  const getPercentageFromEvent = (e) => {
+    const rect = document.querySelector('.slider-track-wrapper').getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let percent = ((clientX - rect.left) / rect.width) * 100;
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+    return percent;
+  };
+
+  const onDragMin = (e) => {
+    if (!isDraggingMin) return;
+    const percent = getPercentageFromEvent(e);
+    const maxPercent = parseFloat(sliderThumbMax.style.left);
+    if (percent > maxPercent) return;
+    
+    sliderThumbMin.style.left = `${percent}%`;
+    const priceVal = Math.round(minPriceLimit + (percent / 100) * (maxPriceLimit - minPriceLimit));
+    minPrice = priceVal;
+    priceInputMin.value = priceVal;
+    
+    priceTrackHighlight.style.left = `${percent}%`;
+    priceTrackHighlight.style.width = `${maxPercent - percent}%`;
+  };
+
+  const onDragMax = (e) => {
+    if (!isDraggingMax) return;
+    const percent = getPercentageFromEvent(e);
+    const minPercent = parseFloat(sliderThumbMin.style.left);
+    if (percent < minPercent) return;
+
+    sliderThumbMax.style.left = `${percent}%`;
+    const priceVal = Math.round(minPriceLimit + (percent / 100) * (maxPriceLimit - minPriceLimit));
+    maxPrice = priceVal;
+    priceInputMax.value = priceVal;
+
+    priceTrackHighlight.style.width = `${percent - minPercent}%`;
+  };
+
+  const stopDrag = () => {
+    if (isDraggingMin || isDraggingMax) {
+      isDraggingMin = false;
+      isDraggingMax = false;
+      currentPage = 1;
+      applyFiltersAndRender();
+    }
+  };
+
+  // Eventos Mouse
+  sliderThumbMin.addEventListener('mousedown', () => isDraggingMin = true);
+  sliderThumbMax.addEventListener('mousedown', () => isDraggingMax = true);
+  
+  // Eventos Touch (Mobile)
+  sliderThumbMin.addEventListener('touchstart', () => isDraggingMin = true);
+  sliderThumbMax.addEventListener('touchstart', () => isDraggingMax = true);
+
+  window.addEventListener('mousemove', (e) => {
+    if (isDraggingMin) onDragMin(e);
+    if (isDraggingMax) onDragMax(e);
+  });
+
+  window.addEventListener('touchmove', (e) => {
+    if (isDraggingMin) onDragMin(e);
+    if (isDraggingMax) onDragMax(e);
+  });
+
+  window.addEventListener('mouseup', stopDrag);
+  window.addEventListener('touchend', stopDrag);
+}
+
+function updateSliderVisuals() {
+  const range = maxPriceLimit - minPriceLimit;
+  const minPercent = range === 0 ? 0 : ((minPrice - minPriceLimit) / range) * 100;
+  const maxPercent = range === 0 ? 100 : ((maxPrice - minPriceLimit) / range) * 100;
+
+  sliderThumbMin.style.left = `${minPercent}%`;
+  sliderThumbMax.style.left = `${maxPercent}%`;
+  
+  priceTrackHighlight.style.left = `${minPercent}%`;
+  priceTrackHighlight.style.width = `${maxPercent - minPercent}%`;
+}
+
+// 10. Limpiar todos los filtros
+function setupClearFilters() {
+  btnClearFilters.addEventListener('click', () => {
+    searchQuery = '';
+    searchBox.value = '';
+    
+    selectedBrands = [];
+    document.querySelectorAll('#brands-checkbox-list input').forEach(cb => cb.checked = false);
+    
+    minPrice = minPriceLimit;
+    maxPrice = maxPriceLimit;
+    priceInputMin.value = minPriceLimit;
+    priceInputMax.value = maxPriceLimit;
+    updateSliderVisuals();
+
+    currentSort = 'relevancia';
+    const radioDefault = document.querySelector('input[name="sort-order"][value="relevancia"]');
+    if (radioDefault) radioDefault.checked = true;
+
+    currentPage = 1;
+    applyFiltersAndRender();
+  });
+}
+
+function setupPaginationControls() {
+  // Nada especial necesario ya que changePage se expone globalmente.
+}
+</file>
+
+<file path="public/js/product.js">
+/**
+ * product.js — Lógica de Detalle de Producto para NoteStore Ecuador
+ */
+
+// Estado del Producto actual
+let currentProduct = null;
+let currentQuantity = 1;
+
+// Elementos DOM
+const productDetailDisplay = document.getElementById('product-detail-display');
+const breadcrumbDisplay = document.getElementById('breadcrumb-display');
+const breadcrumbCurrent = document.getElementById('breadcrumb-current');
+
+// Elementos del producto
+const imgProduct = document.getElementById('product-detail-image');
+const imgBrandBadge = document.getElementById('product-detail-brand');
+const labelSku = document.getElementById('product-detail-sku');
+const titleProduct = document.getElementById('product-detail-title');
+const priceRefProduct = document.getElementById('product-detail-price-ref');
+const priceProduct = document.getElementById('product-detail-price');
+const dateSyncProduct = document.getElementById('product-detail-sync-date');
+const quickSpecsContainer = document.getElementById('quick-specs-container');
+const specsTable = document.getElementById('product-specs-table');
+const relatedProductsGrid = document.getElementById('related-products-grid');
+const thumbnailsRow = document.getElementById('thumbnails-row');
+
+// Botones de Acción
+const btnQtyMinus = document.getElementById('btn-qty-minus');
+const btnQtyPlus = document.getElementById('btn-qty-plus');
+const qtyInput = document.getElementById('qty-input');
+const btnAddToCartDetail = document.getElementById('btn-add-to-cart-detail');
+const btnOriginDetail = document.getElementById('btn-origin-detail');
+const btnShareProduct = document.getElementById('btn-share-product');
+
+// Elementos de Tabs
+const tabBtnSpecs = document.getElementById('tab-btn-specs');
+const tabBtnReviews = document.getElementById('tab-btn-reviews');
+const tabBtnShipping = document.getElementById('tab-btn-shipping');
+const tabPanelSpecs = document.getElementById('tab-panel-specs');
+const tabPanelReviews = document.getElementById('tab-panel-reviews');
+const tabPanelShipping = document.getElementById('tab-panel-shipping');
+
+// Iniciar Carga de Detalle
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sku = urlParams.get('sku');
+
+  if (!sku) {
+    render404('SKU de producto no especificado');
+    return;
+  }
+
+  fetchProductDetail(sku);
+  setupTabs();
+  setupQuantityPicker();
+  setupShareButton();
+});
+
+// 1. Fetch de datos del producto
+async function fetchProductDetail(sku) {
+  try {
+    const response = await fetch(`/api/producto/${sku}`);
+    if (!response.ok) {
+      if (response.status === 404) {
+        render404('Laptop no encontrada en nuestra base de datos local');
+      } else {
+        throw new Error('Error al obtener datos');
+      }
+      return;
+    }
+    currentProduct = await response.json();
+    
+    renderProductDetail();
+    fetchRelatedProducts();
+  } catch (error) {
+    console.error('Error fetching product detail:', error);
+    render404('Error de conexión al cargar la información del producto');
+  }
+}
+
+// 2. Renderizar los datos del producto
+function renderProductDetail() {
+  const p = currentProduct;
+  const brand = parseBrand(p.nombre);
+  const specs = parseSpecs(p.nombre);
+
+  // A. Breadcrumb
+  breadcrumbCurrent.textContent = p.nombre;
+  breadcrumbDisplay.innerHTML = `
+    <a href="/">Inicio</a> &gt; 
+    <a href="/?search=${brand}">Laptops</a> &gt; 
+    <a href="/?search=${brand}">${brand}</a> &gt; 
+    <span style="color:var(--text-secondary);">${p.nombre}</span>
+  `;
+
+  // B. Imagen y Badge de Marca
+  if (p.imagen_url) {
+    imgProduct.src = p.imagen_url;
+    imgProduct.onerror = () => {
+      imgProduct.src = 'data:image/svg+xml;utf8,<svg class="laptop-placeholder-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" /></svg>';
+    };
+  }
+  imgBrandBadge.textContent = brand;
+  imgBrandBadge.href = `/?search=${brand}`;
+
+  // Miniatura única
+  thumbnailsRow.innerHTML = `
+    <div class="thumbnail-box">
+      <img src="${p.imagen_url || 'data:image/svg+xml;utf8,<svg viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%221.2%22><path d=%22M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25%22 /></svg>'}" alt="Miniatura">
+    </div>
+  `;
+
+  // C. Títulos, SKU, Fechas
+  labelSku.textContent = `SKU: ${p.sku}`;
+  titleProduct.textContent = p.nombre;
+  
+  if (p.ultima_actualizacion) {
+    // Formato de fecha
+    dateSyncProduct.textContent = `Precio sincronizado el ${p.ultima_actualizacion}`;
+  } else {
+    dateSyncProduct.textContent = 'Precio sincronizado hoy';
+  }
+
+  // D. Precios (Simular Ahorro del 15% como precio tachado)
+  const sellPrice = p.precio;
+  const refPrice = sellPrice * 1.15;
+  priceProduct.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(sellPrice);
+  priceRefProduct.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(refPrice);
+
+  // E. Botón Destino Tecnomegastore
+  btnOriginDetail.href = `https://tecnomegastore.ec/product/laptop?code=${p.sku}`;
+
+  // F. Agregar al carrito
+  btnAddToCartDetail.onclick = () => {
+    const qty = parseInt(qtyInput.value) || 1;
+    for (let i = 0; i < qty; i++) {
+      window.addToCart(p.sku, p.nombre, p.precio, p.imagen_url || '');
+    }
+    window.showToast(`¡Añadido al carrito: ${qty} unidad(es)!`);
+  };
+
+  // G. Render Specs Rápidas
+  quickSpecsContainer.innerHTML = `
+    <div class="quick-spec-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
+      <span><strong>Procesador:</strong> ${specs.processor}</span>
+    </div>
+    <div class="quick-spec-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4a2 2 0 012-2h12a2 2 0 012 2v3M4 17v3a2 2 0 002 2h12a2 2 0 002-2v-3M4 7h16M4 17h16M4 12h16" /></svg>
+      <span><strong>RAM:</strong> ${specs.ram}</span>
+    </div>
+    <div class="quick-spec-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z" /></svg>
+      <span><strong>Almacenamiento:</strong> ${specs.storage}</span>
+    </div>
+    <div class="quick-spec-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><path d="M8 21h8M12 17v4" /></svg>
+      <span><strong>Pantalla:</strong> ${specs.screen}</span>
+    </div>
+    <div class="quick-spec-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+      <span><strong>Sistema Operativo:</strong> ${specs.os}</span>
+    </div>
+    <div class="quick-spec-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+      <span><strong>Color:</strong> ${specs.color}</span>
+    </div>
+  `;
+
+  // H. Render Specs Tabla Completa (Tab 1)
+  specsTable.innerHTML = `
+    <tr>
+      <td class="spec-name">Característica</td>
+      <td class="spec-val" style="font-weight:600;color:var(--text-primary);">Detalle Técnico</td>
+    </tr>
+    <tr>
+      <td class="spec-name">Procesador</td>
+      <td class="spec-val">${specs.processor}</td>
+    </tr>
+    <tr>
+      <td class="spec-name">Memoria RAM</td>
+      <td class="spec-val">${specs.ram}</td>
+    </tr>
+    <tr>
+      <td class="spec-name">Capacidad de Disco</td>
+      <td class="spec-val">${specs.storage}</td>
+    </tr>
+    <tr>
+      <td class="spec-name">Diagonal de Pantalla</td>
+      <td class="spec-val">${specs.screen}</td>
+    </tr>
+    <tr>
+      <td class="spec-name">Sistema Operativo</td>
+      <td class="spec-val">${specs.os}</td>
+    </tr>
+    <tr>
+      <td class="spec-name">Color de Chasis</td>
+      <td class="spec-val">${specs.color}</td>
+    </tr>
+    <tr>
+      <td class="spec-name">Identificador SKU</td>
+      <td class="spec-val" style="font-family:monospace;">${p.sku}</td>
+    </tr>
+  `;
+}
+
+// 3. Obtener productos relacionados
+async function fetchRelatedProducts() {
+  try {
+    const response = await fetch('/api/productos/json');
+    if (!response.ok) return;
+    const all = await response.json();
+
+    const brand = parseBrand(currentProduct.nombre);
+    
+    // Filtrar relacionados: misma marca o similar rango de precio, excluyendo el actual
+    let related = all.filter(p => p.sku !== currentProduct.sku);
+    
+    const sameBrand = related.filter(p => parseBrand(p.nombre) === brand);
+    
+    if (sameBrand.length >= 4) {
+      related = sameBrand;
+    } else {
+      // Si hay pocas de la misma marca, mezclamos con precio similar (+-20%)
+      const priceMin = currentProduct.precio * 0.8;
+      const priceMax = currentProduct.precio * 1.2;
+      const similarPrice = related.filter(p => p.precio >= priceMin && p.precio <= priceMax);
+      
+      // Combinar y eliminar duplicados
+      const combined = [...sameBrand, ...similarPrice];
+      related = combined.filter((item, idx) => combined.findIndex(x => x.sku === item.sku) === idx);
+    }
+
+    // Tomar 8 aleatorios
+    related = related.sort(() => 0.5 - Math.random()).slice(0, 8);
+
+    if (related.length === 0) {
+      relatedProductsGrid.innerHTML = '<p style="color:var(--text-secondary);">No hay productos relacionados disponibles.</p>';
+      return;
+    }
+
+    // Renderizar
+    relatedProductsGrid.innerHTML = related.map(p => {
+      const formattedPrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p.precio);
+      const itemBrand = parseBrand(p.nombre);
+      const fallbackSvg = `data:image/svg+xml;utf8,<svg class=%22laptop-placeholder-svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%221.2%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25%22 /></svg>`;
+      
+      const imgHtml = p.imagen_url ? 
+        `<img src="${p.imagen_url}" alt="${p.nombre}" loading="lazy" onerror="this.src='${fallbackSvg}';this.onerror=null;">` : 
+        `<div class="laptop-placeholder-svg" style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:40px;height:40px;opacity:0.6;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" /></svg></div>`;
+
+      return `
+        <div class="grid-card" style="width:260px;margin-bottom:0;">
+          <div class="card-image-wrapper">
+            <span class="brand-badge">${itemBrand}</span>
+            <a href="/product.html?sku=${p.sku}">${imgHtml}</a>
+          </div>
+          <div class="card-sku">${p.sku}</div>
+          <h3 class="card-title" title="${p.nombre}">
+            <a href="/product.html?sku=${p.sku}">${p.nombre}</a>
+          </h3>
+          <div class="card-price-row">
+            <div class="card-price">${formattedPrice}</div>
+          </div>
+          <div class="card-actions-wrapper">
+            <button class="btn-primary-cart" onclick="addToCart('${p.sku}', '${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, '${p.imagen_url || ''}')">
+              Agregar al carrito
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Error fetching related products:', e);
+  }
+}
+
+// 4. Configurar las Pestañas (Tabs)
+function setupTabs() {
+  const switchTab = (activeBtn, activePanel) => {
+    [tabBtnSpecs, tabBtnReviews, tabBtnShipping].forEach(btn => btn.classList.remove('active'));
+    [tabPanelSpecs, tabPanelReviews, tabPanelShipping].forEach(panel => panel.classList.remove('active'));
+
+    activeBtn.classList.add('active');
+    activePanel.classList.add('active');
+  };
+
+  tabBtnSpecs.addEventListener('click', () => switchTab(tabBtnSpecs, tabPanelSpecs));
+  tabBtnReviews.addEventListener('click', () => switchTab(tabBtnReviews, tabPanelReviews));
+  tabBtnShipping.addEventListener('click', () => switchTab(tabBtnShipping, tabPanelShipping));
+}
+
+// 5. Configurar selector de cantidad
+function setupQuantityPicker() {
+  btnQtyMinus.addEventListener('click', () => {
+    if (currentQuantity > 1) {
+      currentQuantity--;
+      qtyInput.value = currentQuantity;
+    }
+  });
+
+  btnQtyPlus.addEventListener('click', () => {
+    currentQuantity++;
+    qtyInput.value = currentQuantity;
+  });
+}
+
+// 6. Botón de compartir URL
+function setupShareButton() {
+  btnShareProduct.addEventListener('click', () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      window.showToast('¡Enlace copiado al portapapeles!');
+    }).catch(err => {
+      console.error('Error al copiar enlace:', err);
+      // Fallback manual en caso de fallo o bloqueos del navegador
+      const dummy = document.createElement('input');
+      document.body.appendChild(dummy);
+      dummy.value = url;
+      dummy.select();
+      document.execCommand('copy');
+      document.body.removeChild(dummy);
+      window.showToast('¡Enlace copiado al portapapeles!');
+    });
+  });
+}
+
+// 7. Render 404
+function render404(message) {
+  productDetailDisplay.style.display = 'block';
+  productDetailDisplay.innerHTML = `
+    <div class="empty-catalog-state" style="padding: 6rem 2rem;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:56px;height:56px;color:var(--danger);opacity:0.8;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <h2 style="font-weight:700;margin-top:1rem;color:var(--text-primary);">${message}</h2>
+      <p style="margin-bottom:1.5rem;">El SKU consultado puede estar inactivo o haber sido removido.</p>
+      <a href="/" class="btn-checkout-drawer" style="padding:0.75rem 2rem;display:inline-block;width:auto;text-decoration:none;">← Volver al catálogo principal</a>
+    </div>
+  `;
+  breadcrumbCurrent.textContent = 'Producto no disponible';
+}
+
+// Helper: Extraer Marca
+function parseBrand(nombre) {
+  const brandKeywords = ['Apple', 'HP', 'Lenovo', 'Dell', 'Dynabook', 'Quasad', 'Samsung', 'Asus', 'Acer', 'MSI'];
+  const nameLower = (nombre || '').toLowerCase();
+  for (const b of brandKeywords) {
+    if (nameLower.includes(b.toLowerCase())) {
+      return b;
+    }
+  }
+  return 'Otros';
+}
+
+// Helper: Parsear especificaciones
+function parseSpecs(nombre) {
+  const lower = (nombre || '').toLowerCase();
+  
+  // Procesador
+  let processor = 'Intel / AMD';
+  if (lower.includes('i7') || lower.includes('intel i7') || lower.includes('core i7')) {
+    processor = 'Intel Core i7';
+  } else if (lower.includes('i5') || lower.includes('intel i5') || lower.includes('core i5')) {
+    processor = 'Intel Core i5';
+  } else if (lower.includes('i3') || lower.includes('intel i3') || lower.includes('core i3')) {
+    processor = 'Intel Core i3';
+  } else if (lower.includes('ultra 7') || lower.includes('core ultra 7')) {
+    processor = 'Intel Core Ultra 7';
+  } else if (lower.includes('ultra 5') || lower.includes('core ultra 5')) {
+    processor = 'Intel Core Ultra 5';
+  } else if (lower.includes('ryzen 7') || lower.includes('ryzen7')) {
+    processor = 'AMD Ryzen 7';
+  } else if (lower.includes('ryzen 5') || lower.includes('ryzen5')) {
+    processor = 'AMD Ryzen 5';
+  } else if (lower.includes('ryzen 3') || lower.includes('ryzen3')) {
+    processor = 'AMD Ryzen 3';
+  } else if (lower.includes('m1')) {
+    processor = 'Apple M1';
+  } else if (lower.includes('m2')) {
+    processor = 'Apple M2';
+  } else if (lower.includes('m3')) {
+    processor = 'Apple M3';
+  } else if (lower.includes('m4')) {
+    processor = 'Apple M4';
+  } else if (lower.includes('m5')) {
+    processor = 'Apple M5';
+  } else if (lower.includes('a18 pro')) {
+    processor = 'Apple A18 Pro';
+  }
+  
+  // RAM
+  let ram = 'N/D';
+  const ramMatches = [...lower.matchAll(/(\d+)\s*(gb|tb)\b/ig)];
+  if (ramMatches.length > 0) {
+    const gbValues = ramMatches.map(m => {
+      let num = parseInt(m[1]);
+      if (m[2].toLowerCase() === 'tb') num *= 1024;
+      return { str: m[0].toUpperCase(), val: num };
+    });
+    gbValues.sort((a, b) => a.val - b.val);
+    ram = gbValues[0].str;
+  }
+  
+  // Storage
+  let storage = 'N/D';
+  const ssdMatch = lower.includes('ssd') || lower.includes('m.2');
+  const ramMatchesForDisco = [...lower.matchAll(/(\d+)\s*(gb|tb)\b/ig)];
+  if (ramMatchesForDisco.length > 1) {
+    const gbValues = ramMatchesForDisco.map(m => {
+      let num = parseInt(m[1]);
+      if (m[2].toLowerCase() === 'tb') num *= 1024;
+      return { str: m[0].toUpperCase(), val: num };
+    });
+    gbValues.sort((a, b) => a.val - b.val);
+    storage = gbValues[1].str + (ssdMatch ? ' SSD' : '');
+  } else {
+    if (lower.includes('ssd') || lower.includes('m.2') || lower.includes('disco')) {
+      const storageOnlyMatch = lower.match(/(\d+)\s*(gb|tb)\b/i);
+      if (storageOnlyMatch) storage = storageOnlyMatch[0].toUpperCase() + ' SSD';
+    }
+  }
+
+  // Pantalla
+  let screen = 'N/D';
+  const screenMatch = lower.match(/(\d+(?:\.\d+)?)\s*(inch|pulg|”|")/i);
+  if (screenMatch) {
+    screen = screenMatch[1] + '"';
+  }
+
+  // OS
+  let os = 'Windows 11';
+  if (lower.includes('macos') || lower.includes('mac os') || lower.includes('apple mac')) {
+    os = 'macOS';
+  } else if (lower.includes('freedos') || lower.includes('free dos') || lower.includes('free-dos')) {
+    os = 'FreeDOS';
+  } else if (lower.includes('win11-pro') || lower.includes('win11 pro') || lower.includes('w11-pro') || lower.includes('w11pro')) {
+    os = 'Windows 11 Pro';
+  }
+
+  // Color
+  let color = 'N/D';
+  const colorKeywords = ['silver', 'gray', 'grey', 'blue', 'black', 'citrus', 'indigo', 'blush', 'plata', 'gris', 'negro', 'azul', 'luna gray', 'blue night', 'mystic-blue'];
+  for (const ck of colorKeywords) {
+    if (lower.includes(ck)) {
+      color = ck.charAt(0).toUpperCase() + ck.slice(1);
+      break;
+    }
+  }
+
+  return { processor, ram, storage, screen, os, color };
+}
+</file>
+
+<file path="public/product.html">
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Producto - NoteStore Ecuador</title>
+
+  <!-- Favicon SVG -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
+
+  <!-- Enlace CSS Modular -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <!-- ==========================================
+       HEADER FIJO (Sticky)
+       ========================================== -->
+  <header class="header-sticky">
+    <div class="header-container">
+      <!-- Logo Izquierda -->
+      <a href="/" class="logo-link" id="home-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+        </svg>
+        <span>NoteStore <span class="logo-accent">Ecuador</span></span>
+      </a>
+
+      <!-- Barra de Búsqueda Centro (Inactiva en esta página, redirige a index.html en submit/cambio) -->
+      <div class="search-wrapper">
+        <form action="/" method="GET" id="search-form">
+          <div class="search-input-container">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" name="search" id="search-box" class="search-input"
+              placeholder="Buscar en la tienda principal...">
+          </div>
+        </form>
+      </div>
+
+      <!-- Carrito Derecha -->
+      <div class="header-actions">
+        <button class="cart-toggle-btn" id="cart-toggle-btn" aria-label="Ver carrito">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span class="cart-count-badge" id="cart-badge-count">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       BREADCRUMB DINÁMICO
+       ========================================== -->
+  <div class="breadcrumb-container">
+    <nav class="breadcrumb-nav" id="breadcrumb-display" aria-label="Ruta de navegación">
+      <a href="/">Inicio</a> &gt; <a href="/">Laptops</a> &gt; <span id="breadcrumb-current">Cargando producto...</span>
+    </nav>
+  </div>
+
+  <!-- ==========================================
+       LAYOUT DE DETALLE DE PRODUCTO
+       ========================================== -->
+  <div class="product-detail-layout" id="product-detail-display">
+
+    <!-- Sección Principal (Galería + Info) -->
+    <div class="detail-main-section">
+
+      <!-- Columna Izquierda: Galería -->
+      <div class="gallery-column">
+        <div class="main-image-wrapper" id="main-image-container">
+          <span class="gallery-brand-badge" id="product-detail-brand">Apple</span>
+
+          <!-- Botón de compartir -->
+          <button class="gallery-share-btn" id="btn-share-product" title="Copiar enlace"
+            aria-label="Copiar enlace al portapapeles">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+            </svg>
+          </button>
+
+          <!-- Imagen Principal -->
+          <img
+            src="data:image/svg+xml;utf8,<svg class=%22laptop-placeholder-svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%221.2%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25%22 /></svg>"
+            id="product-detail-image" alt="Producto">
+        </div>
+
+        <!-- Fila de Miniaturas -->
+        <div class="thumbnails-row" id="thumbnails-row">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Información General -->
+      <div class="info-column">
+        <div>
+          <span class="info-sku-label" id="product-detail-sku">SKU: COMAPLMHFA4LLAS</span>
+          <h1 class="info-title" id="product-detail-title">MacBook Neo A18 Pro Apple 8GB 256GB</h1>
+        </div>
+
+        <!-- Valoración Simulada -->
+        <div class="info-rating-row">
+          <div class="stars-container">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor" style="color:#D1D5DB;">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          </div>
+          <span style="font-weight:600;">4.5</span>
+          <a href="#tab-reviews" class="reviews-link-simulated" id="reviews-count-link">(127 reseñas)</a>
+        </div>
+
+        <!-- Precios -->
+        <div class="info-prices-card">
+          <div class="info-price-ref-row">
+            <span>Precio original:</span>
+            <span class="price-ref-strike" id="product-detail-price-ref">$1,072.21</span>
+            <span class="price-savings-badge">Ahorra 13%</span>
+          </div>
+          <div class="info-price-main" id="product-detail-price">$932.36</div>
+
+          <div class="info-stock-promo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+              style="width:20px;height:20px;">
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd" />
+            </svg>
+            <span>En stock · Listo para envío inmediato</span>
+          </div>
+        </div>
+
+        <!-- Selector de Cantidad + Botones Acción -->
+        <div class="info-quantity-actions-grid">
+          <div class="quantity-picker">
+            <button id="btn-qty-minus" aria-label="Restar una unidad">-</button>
+            <input type="text" id="qty-input" value="1" readonly>
+            <button id="btn-qty-plus" aria-label="Sumar una unidad">+</button>
+          </div>
+
+          <!-- Agregar al Carrito -->
+          <button class="info-add-btn-large" id="btn-add-to-cart-detail">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor" style="width:20px;height:20px;">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Agregar al carrito
+          </button>
+
+          <!-- Ver en Mayorista -->
+          <a href="#" target="_blank" rel="noopener" class="info-origin-btn-outline" id="btn-origin-detail">
+            Ver en Tecnomegastore →
+          </a>
+        </div>
+
+        <div class="divider-line"></div>
+
+        <!-- Specs Rápidas -->
+        <div class="quick-specs-grid" id="quick-specs-container">
+          <!-- Generadas dinámicamente -->
+        </div>
+
+        <div class="divider-line"></div>
+
+        <!-- Alerta de Sincronización -->
+        <div class="update-date-alert">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span id="product-detail-sync-date">Precio actualizado el 01/06/2026 a las 15:59</span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Pestañas (Tabs) de Información Completa -->
+    <section class="tabs-outer-wrapper">
+      <div class="tabs-headers-row" role="tablist">
+        <button class="tab-nav-btn active" id="tab-btn-specs" role="tab" aria-selected="true"
+          aria-controls="tab-panel-specs">Especificaciones completas</button>
+        <button class="tab-nav-btn" id="tab-btn-reviews" role="tab" aria-selected="false"
+          aria-controls="tab-panel-reviews">Opiniones simuladas</button>
+        <button class="tab-nav-btn" id="tab-btn-shipping" role="tab" aria-selected="false"
+          aria-controls="tab-panel-shipping">Envío y garantía</button>
+      </div>
+
+      <div class="tabs-content-box">
+
+        <!-- Tab 1: Especificaciones -->
+        <div class="tab-panel active" id="tab-panel-specs" role="tabpanel">
+          <table class="specs-table" id="product-specs-table">
+            <!-- Rellenado dinámicamente -->
+          </table>
+        </div>
+
+        <!-- Tab 2: Reseñas -->
+        <div class="tab-panel" id="tab-panel-reviews" role="tabpanel">
+          <div class="reviews-grid-tab">
+            <div class="reviews-summary-column">
+              <span class="reviews-summary-score">4.5 <span
+                  style="font-size:1.2rem;color:var(--text-secondary);font-weight:500;">de 5</span></span>
+
+              <div class="stars-container" style="margin-bottom:0.5rem;">
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;color:#D1D5DB;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+
+              <div class="star-bars-list">
+                <div class="star-bar-row">
+                  <span>5 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 60%;"></div>
+                  </div>
+                  <span class="star-bar-percent">60%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>4 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 25%;"></div>
+                  </div>
+                  <span class="star-bar-percent">25%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>3 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 10%;"></div>
+                  </div>
+                  <span class="star-bar-percent">10%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>2 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 3%;"></div>
+                  </div>
+                  <span class="star-bar-percent">3%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>1 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 2%;"></div>
+                  </div>
+                  <span class="star-bar-percent">2%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="reviews-items-list">
+              <!-- Reseña 1 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">LA</div>
+                    <div>
+                      <div class="review-author-name">Luis Andrade</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 3 semanas</span>
+                </div>
+                <p class="review-item-text">Excelente laptop. El rendimiento superó todas mis expectativas y la pantalla
+                  es de una nitidez increíble. NoteStore me la entregó súper rápido y a un precio mucho menor que en
+                  locales físicos en Quito. ¡Recomendada!</p>
+              </div>
+
+              <!-- Reseña 2 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">MP</div>
+                    <div>
+                      <div class="review-author-name">María Pino</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;color:#D1D5DB;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 1 mes</span>
+                </div>
+                <p class="review-item-text">La calidad de construcción es sobresaliente. Es súper ligera e ideal para
+                  llevar a la universidad. El único detalle es que la duración de la batería bajo uso intenso es de unas
+                  6 horas, pero carga extremadamente rápido.</p>
+              </div>
+
+              <!-- Reseña 3 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">FC</div>
+                    <div>
+                      <div class="review-author-name">Fernando Castro</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 2 meses</span>
+                </div>
+                <p class="review-item-text">Tenia dudas por el precio tan bajo, pero el SKU es original de
+                  Tecnomegastore, me validaron la garantía local sin problemas. Excelente atención del soporte técnico.
+                  Volveré a comprar.</p>
+              </div>
+
+              <!-- Reseña 4 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">DS</div>
+                    <div>
+                      <div class="review-author-name">Diana Silva</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;color:#D1D5DB;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 3 meses</span>
+                </div>
+                <p class="review-item-text">El teclado en español es súper cómodo y silencioso. La uso todo el día para
+                  mi trabajo de oficina y no calienta nada. Excelente compra por el precio ofertado.</p>
+              </div>
+
+              <!-- Botón Ver Todas -->
+              <button class="btn-reviews-more-sim">Ver todas las reseñas</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Envío y Garantía -->
+        <div class="tab-panel" id="tab-panel-shipping" role="tabpanel">
+          <div class="shipping-tab-grid">
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1-1.125V11.25a9 9 0 019-9h1.5a1.125 1.125 0 011 1.125v1.5a3.375 3.375 0 003.375 3.375h1.5a1.125 1.125 0 011 1.125v1.5a3.375 3.375 0 003.375 3.375H9.75m11.25 3.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125A1.125 1.125 0 0021 16.5V13.5a9 9 0 00-9-9h-1.5a1.125 1.125 0 00-1 1.125v1.5a3.375 3.375 0 01-3.375 3.375H4.875a1.125 1.125 0 00-1 1.125v1.5a3.375 3.375 0 01-3.375 3.375H1.125A1.125 1.125 0 000 16.5v.75m11.25 1.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125" />
+              </svg>
+              <div class="shipping-card-title">Envío a todo Ecuador</div>
+              <p class="shipping-card-desc">Despachos diarios vía Servientrega o Cooperativa a todas las provincias con
+                seguro de transporte integrado.</p>
+            </div>
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" />
+              </svg>
+              <div class="shipping-card-title">Garantía oficial local</div>
+              <p class="shipping-card-desc">Garantía directa del fabricante de 1 año válida en todos los centros de
+                servicios autorizados del país.</p>
+            </div>
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7C4.68 11.58 4.5 12.72 4.5 14c0 1.28.18 2.42.338 3.362a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.092-1.209.138-2.43.138-3.662z" />
+              </svg>
+              <div class="shipping-card-title">Devolución garantizada</div>
+              <p class="shipping-card-desc">Si el equipo presenta algún desperfecto de fábrica en los primeros 7 días,
+                realizamos el cambio inmediato.</p>
+            </div>
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <div class="shipping-card-title">Soporte técnico premium</div>
+              <p class="shipping-card-desc">Atención telefónica y por chat personalizada para configuraciones e
+                instalaciones de software inicial.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Sección: Productos Relacionados -->
+    <section class="related-products-section">
+      <h3 class="related-title">También te puede interesar</h3>
+      <div class="related-scroll-wrapper">
+        <div class="related-grid" id="related-products-grid">
+          <!-- Renderizado dinámico desde product.js -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ==========================================
+       CARRITO DESLIZABLE (Drawer)
+       ========================================== -->
+  <div class="cart-drawer-overlay" id="cart-drawer-overlay"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <!-- Cabecera -->
+    <div class="cart-drawer-header">
+      <span class="cart-drawer-title" id="cart-drawer-title">Mi carrito (0 productos)</span>
+      <button class="cart-drawer-close-btn" id="cart-close-btn" aria-label="Cerrar carrito">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Cuerpo (Lista de items) -->
+    <div class="cart-drawer-body" id="cart-drawer-body">
+      <!-- Items agregados por localStorage -->
+      <div class="empty-cart-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+        <p>Tu carrito está vacío</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cart-drawer-footer">
+      <div class="cart-summary-row">
+        <span>Subtotal</span>
+        <span class="cart-subtotal-val" id="cart-subtotal-val">$0.00</span>
+      </div>
+      <p class="cart-shipping-notice">Envío calculado al finalizar</p>
+      <button class="btn-checkout-drawer" id="cart-checkout-btn">Finalizar compra</button>
+      <button class="btn-close-drawer" id="cart-continue-btn">Seguir comprando</button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TOAST NOTIFICATIONS (POPUP)
+       ========================================== -->
+  <div class="toast-container" id="toast-notification">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toast-text">¡Enlace copiado!</span>
+  </div>
+
+  <!-- ==========================================
+       FOOTER
+       ========================================== -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>NoteStore Ecuador</h4>
+        <p>Tu e-commerce de laptops y dispositivos tecnológicos número uno en Ecuador. Precios de referencia
+          sincronizados directamente de distribuidores mayoristas oficiales para darte el mejor precio del mercado.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Links rápidos</h4>
+        <ul class="footer-links-list">
+          <li><a href="/">Catálogo</a></li>
+          <li><a href="/admin?key=admin2026">Panel de control scraper</a></li>
+          <li><a href="https://tecnomegastore.ec" target="_blank" rel="noopener">Tecnomegastore EC</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Información técnica</h4>
+        <p>Base de datos: JSON nativa estructurada por SKU.<br>Raspado en segundo plano: Playwright Stealth y Express
+          local. 100% libre de cookies intrusivas.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 NoteStore Ecuador · Precios referenciados de Tecnomegastore Ecuador. Todos los derechos reservados.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/cart.js"></script>
+  <script src="/js/product.js"></script>
+</body>
+
+</html>
+</file>
+
+<file path="public/style.css">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ==========================================
+   Variables de Diseño y Resets
+   ========================================== */
+:root {
+  --bg-main: #FFFFFF;
+  --bg-secondary: #F8F9FA;
+  --accent: #223797;
+  --accent-hover: #0052CC;
+  --text-primary: #111111;
+  --text-secondary: #6B7280;
+  --border-color: #ffffff;
+  --success: #16A34A;
+  --danger: #DC2626;
+  --badge-bg: #EFF6FF;
+  --badge-text: #0066FF;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+/* Scrollbar moderno */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* ==========================================
+   Componente: Header Fijo
+   ========================================== */
+.header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.logo-link svg {
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+}
+
+.logo-accent {
+  color: var(--accent);
+}
+
+/* Barra de Búsqueda */
+.search-wrapper {
+  flex: 1;
+  max-width: 600px;
+  position: relative;
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 50px;
+  padding: 0.5rem 1.25rem;
+  transition: var(--transition);
+}
+
+.search-input-container:focus-within {
+  border-color: var(--accent);
+  background-color: var(--bg-main);
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+}
+
+.search-input-container svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  margin-right: 0.75rem;
+}
+
+.search-input {
+  width: 100%;
+  font-size: 0.9rem;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Controles Derecha */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cart-toggle-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cart-toggle-btn:hover {
+  background-color: var(--badge-bg);
+  border-color: var(--accent);
+}
+
+.cart-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+}
+
+.cart-count-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: var(--accent);
+  color: #FFFFFF;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #FFFFFF;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cart-count-badge.animate {
+  transform: scale(1.3);
+}
+
+/* ==========================================
+   Componente: Hero Banner
+   ========================================== */
+.hero-banner {
+  background-color: var(--accent);
+  color: #FFFFFF;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.hero-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  padding: 0.3rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.hero-status-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #4ADE80;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.hero-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.5px;
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+/* ==========================================
+   Layout Principal (Catálogo)
+   ========================================== */
+.main-layout {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  width: 100%;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 2rem;
+}
+
+/* ==========================================
+   Sidebar: Filtros
+   ========================================== */
+.filter-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filter-section {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.25rem;
+}
+
+.filter-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.filter-title-container svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.filter-title-container.collapsed svg {
+  transform: rotate(-90deg);
+}
+
+.filter-content {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: max-height 0.2s ease, opacity 0.2s ease;
+}
+
+.filter-content.hidden {
+  display: none;
+}
+
+/* Inputs de Checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label input {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  background-color: var(--bg-secondary);
+  transition: var(--transition);
+}
+
+.checkbox-label input:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkbox-label input:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.brand-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* Slider de Precios */
+.price-slider-container {
+  padding: 0.5rem 0.25rem;
+}
+
+.slider-track-wrapper {
+  position: relative;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  margin-bottom: 1.5rem;
+}
+
+.slider-track-highlight {
+  position: absolute;
+  height: 100%;
+  background-color: var(--accent);
+  border-radius: 3px;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  border: 2px solid var(--accent);
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  box-shadow: var(--shadow-sm);
+  z-index: 2;
+}
+
+.price-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.price-input-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.price-input-box span {
+  color: var(--text-secondary);
+  margin-right: 0.25rem;
+}
+
+.price-input-box input {
+  width: 100%;
+  background: transparent;
+  font-weight: 500;
+}
+
+/* Radio buttons Ordenar */
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.radio-label input {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  background-color: var(--bg-secondary);
+  transition: var(--transition);
+}
+
+.radio-label input:checked {
+  border-color: var(--accent);
+}
+
+.radio-label input:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent);
+  border-radius: 50%;
+}
+
+.btn-outline-clear {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+  margin-top: 1rem;
+}
+
+.btn-outline-clear:hover {
+  background-color: var(--badge-bg);
+}
+
+/* ==========================================
+   Área de Catálogo y Controles Superiores
+   ========================================== */
+.catalog-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.catalog-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.products-found-text {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.catalog-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.view-toggle-group {
+  display: flex;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.view-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.view-toggle-btn.active {
+  background-color: #FFFFFF;
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.view-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.limit-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.limit-select {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.limit-select:hover {
+  border-color: var(--accent);
+}
+
+/* ==========================================
+   Vista Grid de Tarjetas de Producto
+   ========================================== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.grid-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: var(--transition);
+}
+
+.grid-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+}
+
+.card-image-wrapper {
+  width: 100%;
+  height: 180px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.card-image-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+.grid-card:hover .card-image-wrapper img {
+  transform: scale(1.06);
+}
+
+.brand-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.card-sku {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.75;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  font-family: monospace;
+}
+
+.card-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  margin-bottom: 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.7em;
+}
+
+.card-price-row {
+  margin-top: auto;
+  margin-bottom: 0.75rem;
+}
+
+.card-price {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.stock-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.stock-dot.in {
+  background-color: var(--success);
+}
+
+.stock-dot.out {
+  background-color: var(--danger);
+}
+
+.stock-text.in {
+  color: var(--success);
+}
+
+.stock-text.out {
+  color: var(--danger);
+}
+
+.sync-date-text {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  margin-bottom: 0.75rem;
+}
+
+.card-actions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn-primary-cart {
+  width: 100%;
+  background-color: var(--accent);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.btn-primary-cart:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-secondary-link {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.btn-secondary-link:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+/* ==========================================
+   Vista Lista de Tarjetas de Producto
+   ========================================== */
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.list-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  position: relative;
+  transition: var(--transition);
+}
+
+.list-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+}
+
+.list-card .card-image-wrapper {
+  width: 150px;
+  height: 120px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.list-card-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.list-card-right {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-left: 1px solid var(--border-color);
+  padding-left: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Specs resumidas para vista lista */
+.list-specs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.list-spec-tag {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* ==========================================
+   Paginación
+   ========================================== */
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 2rem;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  padding: 0 6px;
+}
+
+.pagination-btn:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.pagination-btn.active {
+  background-color: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+}
+
+.pagination-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-btn.dots {
+  border-color: transparent;
+  cursor: default;
+}
+
+.pagination-btn.dots:hover {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+/* Placeholder laptop SVG */
+.laptop-placeholder-svg {
+  width: 48px;
+  height: 48px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Estado de catálogo vacío */
+.empty-catalog-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-color);
+}
+
+.empty-catalog-state svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.6;
+}
+
+/* ==========================================
+   Página 2: Detalle del Producto
+   ========================================== */
+.breadcrumb-container {
+  max-width: 1200px;
+  margin: 1.5rem auto 0;
+  padding: 0 1.5rem;
+  width: 100%;
+}
+
+.breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.breadcrumb-nav a {
+  color: var(--accent);
+}
+
+.breadcrumb-nav a:hover {
+  text-decoration: underline;
+}
+
+.product-detail-layout {
+  max-width: 1200px;
+  margin: 1.5rem auto 3rem;
+  padding: 0 1.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.detail-main-section {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* Columna Izquierda: Galería */
+.gallery-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.main-image-wrapper {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.main-image-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 1.5rem;
+  transition: transform 0.3s ease-out;
+}
+
+.main-image-wrapper:hover img {
+  transform: scale(1.4);
+}
+
+.gallery-brand-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background-color: var(--accent);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.gallery-share-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.gallery-share-btn:hover {
+  background-color: var(--badge-bg);
+  border-color: var(--accent);
+}
+
+.gallery-share-btn svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
+
+.thumbnails-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.thumbnail-box {
+  width: 70px;
+  height: 70px;
+  border: 2px solid var(--accent);
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.thumbnail-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 0.25rem;
+}
+
+/* Columna Derecha: Info */
+.info-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-sku-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-family: monospace;
+}
+
+.info-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.info-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.stars-container {
+  display: flex;
+  gap: 1px;
+}
+
+.stars-container svg {
+  width: 16px;
+  height: 16px;
+  color: #FBBF24;
+}
+
+.reviews-link-simulated {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.reviews-link-simulated:hover {
+  text-decoration: underline;
+}
+
+.info-prices-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-price-main {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.info-price-ref-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.price-ref-strike {
+  text-decoration: line-through;
+}
+
+.price-savings-badge {
+  background-color: #FEF3C7;
+  color: #D97706;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.info-stock-promo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.info-quantity-actions-grid {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.quantity-picker {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: #FFFFFF;
+  overflow: hidden;
+  height: 48px;
+  width: 120px;
+}
+
+.quantity-picker button {
+  width: 40px;
+  height: 100%;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.quantity-picker button:hover {
+  background-color: var(--border-color);
+}
+
+.quantity-picker input {
+  width: 40px;
+  height: 100%;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.info-add-btn-large {
+  flex: 1;
+  height: 48px;
+  background-color: var(--accent);
+  color: #FFFFFF;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+.info-add-btn-large:hover {
+  background-color: var(--accent-hover);
+}
+
+.info-origin-btn-outline {
+  height: 48px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+  padding: 0 1.25rem;
+}
+
+.info-origin-btn-outline:hover {
+  background-color: var(--badge-bg);
+}
+
+.divider-line {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+/* Specs rápidas */
+.quick-specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+}
+
+.quick-spec-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.quick-spec-item svg {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.update-date-alert {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.update-date-alert svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ==========================================
+   Tabs del Detalle de Producto
+   ========================================== */
+.tabs-outer-wrapper {
+  margin-top: 1.5rem;
+}
+
+.tabs-headers-row {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-nav-btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+}
+
+.tab-nav-btn:hover {
+  color: var(--text-primary);
+}
+
+.tab-nav-btn.active {
+  color: var(--accent);
+}
+
+.tab-nav-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent);
+}
+
+.tabs-content-box {
+  padding: 1.5rem 0;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Tab 1: Especificaciones Completas */
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.specs-table tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.specs-table tr:nth-child(even) {
+  background-color: var(--bg-secondary);
+}
+
+.specs-table td {
+  padding: 0.75rem 1rem;
+}
+
+.specs-table td.spec-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 25%;
+}
+
+.specs-table td.spec-val {
+  color: var(--text-secondary);
+}
+
+/* Tab 2: Reseñas simuladas */
+.reviews-grid-tab {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.reviews-summary-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reviews-summary-score {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.star-bars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.star-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.star-bar-track {
+  flex: 1;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.star-bar-fill {
+  height: 100%;
+  background-color: #FBBF24;
+}
+
+.star-bar-percent {
+  width: 30px;
+  text-align: right;
+}
+
+.reviews-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.review-item-card {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.25rem;
+}
+
+.review-item-card:last-child {
+  border-bottom: none;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.review-author-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.review-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--badge-bg);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-author-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.review-item-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.review-item-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.btn-reviews-more-sim {
+  align-self: flex-start;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-reviews-more-sim:hover {
+  background-color: var(--bg-secondary);
+}
+
+/* Tab 3: Envío y Garantía */
+.shipping-tab-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.shipping-info-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shipping-info-card svg {
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+}
+
+.shipping-card-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.shipping-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ==========================================
+   Sección: Productos Relacionados
+   ========================================== */
+.related-products-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 2rem;
+  margin-top: 2rem;
+}
+
+.related-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.related-scroll-wrapper {
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 260px);
+  gap: 1rem;
+  width: max-content;
+}
+
+/* ==========================================
+   Drawer Lateral del Carrito
+   ========================================== */
+.cart-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition);
+}
+
+.cart-drawer-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  background-color: #FFFFFF;
+  z-index: 201;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cart-drawer.open {
+  transform: translateX(0);
+}
+
+.cart-drawer-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cart-drawer-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.cart-drawer-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.cart-drawer-close-btn:hover {
+  background-color: var(--bg-secondary);
+}
+
+.cart-drawer-close-btn svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+}
+
+.cart-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Item del Carrito */
+.cart-item-card {
+  display: flex;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cart-item-img {
+  width: 70px;
+  height: 70px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cart-item-img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 0.25rem;
+}
+
+.cart-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cart-item-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cart-item-sku {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-family: monospace;
+}
+
+.cart-item-price {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.cart-item-quantity {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 28px;
+}
+
+.cart-item-quantity button {
+  width: 24px;
+  height: 100%;
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.cart-item-quantity input {
+  width: 28px;
+  height: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cart-item-remove-btn {
+  cursor: pointer;
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: var(--transition);
+}
+
+.cart-item-remove-btn:hover {
+  opacity: 0.8;
+}
+
+.cart-item-remove-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Estado de Carrito Vacío */
+.empty-cart-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  height: 250px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-cart-state svg {
+  width: 44px;
+  height: 44px;
+  opacity: 0.6;
+}
+
+.cart-drawer-footer {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cart-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.cart-subtotal-val {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.cart-shipping-notice {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  opacity: 0.85;
+}
+
+.btn-checkout-drawer {
+  width: 100%;
+  background-color: var(--accent);
+  color: #FFFFFF;
+  padding: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.btn-checkout-drawer:hover {
+  background-color: var(--accent-hover);
+}
+
+.btn-close-drawer {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background-color: #FFFFFF;
+  color: var(--text-secondary);
+  padding: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.btn-close-drawer:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ==========================================
+   Toast Notification Popups (Copiar URL, etc)
+   ========================================== */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background-color: #111111;
+  color: #FFFFFF;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+}
+
+.toast-container.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast-container svg {
+  width: 16px;
+  height: 16px;
+  color: var(--success);
+}
+
+/* ==========================================
+   Footer Común
+   ========================================== */
+footer {
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  padding: 3rem 1.5rem 1.5rem;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr;
+  gap: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer-col h4 {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.footer-col p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.footer-links-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.footer-links-list a:hover {
+  color: var(--accent);
+}
+
+.footer-bottom {
+  max-width: 1200px;
+  margin: 1.5rem auto 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+/* ==========================================
+   ANIMACIONES Y EFECTOS
+   ========================================== */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* ==========================================
+   Diseño Oscuro Especial del Admin Panel
+   ========================================== */
+body.admin-theme {
+  background-color: var(--bg-app);
+  color: var(--color-text-primary);
+}
+
+body.admin-theme header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+body.admin-theme .admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+body.admin-theme h1,
+body.admin-theme h2,
+body.admin-theme h3 {
+  color: var(--color-text-primary);
+}
+
+body.admin-theme .admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+body.admin-theme .admin-btn-back {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+body.admin-theme .admin-panel-hero {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+body.admin-theme .admin-hero-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+body.admin-theme .admin-hero-desc {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+body.admin-theme .admin-controls-panel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--bg-app);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+body.admin-theme .admin-btn-scrape {
+  background-color: var(--color-accent);
+  color: #052e16;
+  font-weight: 700;
+  padding: 0.65rem 1.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+body.admin-theme .admin-btn-scrape:hover {
+  background-color: var(--color-accent-hover);
+}
+
+body.admin-theme .admin-indicator-box {
+  display: none;
+  background-color: rgba(6, 182, 212, 0.08);
+  border: 1px solid var(--color-cyan);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  margin-top: 1rem;
+  align-items: center;
+  gap: 1rem;
+}
+
+body.admin-theme .htmx-request.admin-indicator-box {
+  display: flex;
+}
+
+body.admin-theme .admin-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(6, 182, 212, 0.1);
+  border-top-color: var(--color-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s infinite linear;
+}
+
+body.admin-theme .admin-table-section {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+body.admin-theme .admin-table-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+body.admin-theme .admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+body.admin-theme .admin-table th {
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+
+body.admin-theme .admin-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--color-text-secondary);
+}
+
+body.admin-theme .admin-table tbody tr:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+body.admin-theme .admin-table td.sku {
+  font-family: monospace;
+  color: var(--color-cyan);
+  font-weight: 600;
+}
+
+body.admin-theme .admin-table td.price {
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+/* ==========================================
+   MEDIA QUERIES (Responsive)
+   ========================================== */
+@media (max-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .detail-main-section {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .main-image-wrapper {
+    height: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-sidebar {
+    display: none;
+    /* En mobile se mostrará deslizante o se ocultará de forma simple */
+  }
+
+  /* Modificación responsive para filtros móviles simples */
+  .filter-sidebar.mobile-open {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background-color: #FFFFFF;
+    z-index: 150;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    animation: slideInLeft 0.3s forwards;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-banner {
+    height: 140px;
+    padding: 1rem;
+  }
+
+  .hero-title {
+    font-size: 1.4rem;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .shipping-tab-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .reviews-grid-tab {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-container {
+    flex-wrap: wrap;
+  }
+
+  .search-wrapper {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .info-quantity-actions-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quantity-picker {
+    width: 100%;
+  }
+
+  .shipping-tab-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+</file>
+
+<file path="scraper.js">
+const { chromium } = require('playwright-extra');
+const stealth = require('puppeteer-extra-plugin-stealth')();
+const { upsertProduct } = require('./database');
+
+// Registrar el plugin de stealth en playwright-extra
+chromium.use(stealth);
+
+/**
+ * Limpia el texto del precio y lo convierte a número flotante.
+ * Soporta formatos como "$1,249.99" y "$1.249,99", y limpia textos concatenados como "Comprar".
+ * @param {string} priceText - El texto del precio a limpiar.
+ * @returns {number} El precio como número flotante.
+ */
+function cleanPrice(priceText) {
+  if (!priceText) return 0;
+
+  // Eliminar símbolos de moneda, texto ("Comprar", etc.) y espacios en blanco
+  // Manteniendo únicamente números, puntos y comas
+  let clean = priceText.replace(/[^0-9.,]/g, '').trim();
+
+  // Detectar si el formato es europeo/latinoamericano (1.249,99) o americano (1,249.99)
+  const lastComma = clean.lastIndexOf(',');
+  const lastDot = clean.lastIndexOf('.');
+
+  if (lastComma > lastDot) {
+    // Formato "1.249,99" -> Eliminar puntos y reemplazar coma por punto decimal
+    clean = clean.replace(/\./g, '').replace(',', '.');
+  } else if (lastDot > lastComma) {
+    // Formato "1,249.99" -> Eliminar comas
+    clean = clean.replace(/,/g, '');
+  } else {
+    // Formato simple "1249" o "1249,99" sin otros separadores
+    clean = clean.replace(',', '.');
+  }
+
+  const parsed = parseFloat(clean);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
+ * Función principal de scraping
+ * Inicia el navegador Chromium en modo stealth, navega a la URL de Next.js y procesa los productos
+ * @returns {Promise<number>} Número de productos raspados y guardados con éxito
+ */
+async function scrapeLaptops() {
+  console.log('Iniciando navegador Chromium en modo Stealth...');
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-blink-features=AutomationControlled'
+    ]
+  });
+
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    viewport: { width: 1280, height: 1000 }
+  });
+
+  const page = await context.newPage();
+
+  try {
+    const url = 'https://tecnomegastore.ec/category/1/3N003-pc-laptop-portatil-notebook';
+    console.log(`Navegando a la URL: ${url}`);
+
+    // Esperar a que la red esté completamente inactiva (networkidle) para garantizar la hidratación de React/Next
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
+
+    console.log('Esperando estabilización de renderizado dinámico...');
+    // Esperar 5 segundos adicionales para asegurar renderizado completo
+    await page.waitForTimeout(5000);
+
+    console.log('Extrayendo información de los productos...');
+    // Extraer los datos de la página
+    const productsData = await page.evaluate(() => {
+      // Obtener todos los enlaces a productos que tengan el parámetro 'code' (SKU)
+      const productLinks = Array.from(document.querySelectorAll('a'))
+        .filter(a => a.href && a.href.includes('/product/') && a.href.includes('code='));
+
+      const results = [];
+
+      productLinks.forEach(link => {
+        const urlStr = link.href;
+        let sku = '';
+        try {
+          const urlObj = new URL(urlStr);
+          sku = urlObj.searchParams.get('code') || '';
+        } catch (e) {
+          const match = urlStr.match(/[?&]code=([^&]+)/);
+          if (match) sku = match[1];
+        }
+
+        const nombre = link.innerText.trim();
+
+        // Encontrar la tarjeta contenedora (.bg-white)
+        const card = link.closest('.bg-white') || link.parentElement?.parentElement;
+
+        let precioTexto = '';
+        let imagenUrl = '';
+        if (card) {
+          // Extraer la URL de la imagen del producto
+          const imgEl = card.querySelector('img');
+          imagenUrl = imgEl ? imgEl.src : '';
+
+          // Buscar cualquier elemento que contenga el símbolo de dólar $
+          const allElements = Array.from(card.querySelectorAll('*'));
+          const priceElement = allElements.find(el => {
+            const txt = el.textContent.trim();
+            return txt.startsWith('$') && /\d/.test(txt);
+          });
+
+          if (priceElement) {
+            precioTexto = priceElement.textContent.trim();
+          } else {
+            const matchPrice = card.innerText.match(/\$\s*([0-9.,]+)/);
+            if (matchPrice) {
+              precioTexto = matchPrice[0];
+            }
+          }
+        }
+
+        // Si tenemos SKU y nombre válido, agregamos al resultado preliminar
+        if (sku && nombre && precioTexto) {
+          results.push({ sku, nombre, precioTexto, imagenUrl });
+        }
+      });
+
+      return results;
+    });
+
+    console.log(`Se encontraron ${productsData.length} productos. Procesando y guardando en JSON DB...`);
+
+    let savedCount = 0;
+    for (const item of productsData) {
+      const precioCosto = cleanPrice(item.precioTexto);
+
+      // Solo guardar productos con precio válido
+      if (precioCosto > 0) {
+        upsertProduct(item.sku, item.nombre, precioCosto, item.imagenUrl);
+        savedCount++;
+      }
+    }
+
+    console.log(`Scraping finalizado. ${savedCount} productos fueron agregados o actualizados en la base de datos.`);
+    return savedCount;
+
+  } catch (error) {
+    console.error('Error durante el proceso de scraping:', error);
+    throw error;
+  } finally {
+    // Asegurar que el navegador se cierre para liberar recursos
+    await browser.close();
+    console.log('Navegador cerrado.');
+  }
+}
+
+module.exports = {
+  scrapeLaptops
+};
+</file>
+
+<file path="server.js">
+const express = require('express');
+const path = require('path');
+const { getAllProducts } = require('./database');
+const { scrapeLaptops } = require('./scraper');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Configurar Express para servir los archivos estáticos del frontend desde la carpeta 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+/**
+ * Helper para formatear valores numéricos a dólares estadounidenses (USD)
+ * @param {number} value - El número a formatear
+ * @returns {string} Texto formateado ej. "$1,249.99"
+ */
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(value);
+}
+
+/**
+ * Helper para renderizar los productos en formato de tarjetas de catálogo HTML (Grid)
+ * @param {Array} products - Lista de productos obtenidos de la base de datos
+ * @returns {string} Fragmento HTML con las tarjetas o estado vacío
+ */
+function renderProductCards(products) {
+  if (!products || products.length === 0) {
+    return `
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="empty-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+        </svg>
+        <p>El catálogo local está vacío. Presiona "Actualizar Catálogo" para iniciar el scraping en tiempo real.</p>
+      </div>
+    `;
+  }
+
+  return products.map(p => {
+    // Generar un enlace real de búsqueda o directo a Tecnomegastore para el SKU
+    const productUrl = `https://tecnomegastore.ec/product/laptop?code=${p.sku}`;
+    
+    // Obtener solo la fecha (YYYY-MM-DD) del timestamp de actualización
+    const dateOnly = p.ultima_actualizacion ? p.ultima_actualizacion.split(' ')[0] : '';
+
+    return `
+      <div class="product-card animate-fade-in">
+        <div class="product-card-header">
+          <span class="badge-sku">${p.sku}</span>
+          <span class="sync-date">${dateOnly}</span>
+        </div>
+        
+        <!-- Imagen Real del Producto (con Fallback a SVG) -->
+        <div class="product-image-container">
+          ${p.imagen_url ? `
+            <img src="${p.imagen_url}" alt="${p.nombre}" class="product-image" loading="lazy" />
+          ` : `
+            <div class="product-image-placeholder" style="border: none; margin: 0; background: transparent; height: 100%; width: 100%;">
+              <svg class="laptop-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+              </svg>
+            </div>
+          `}
+        </div>
+        
+        <div class="product-info">
+          <h3 class="product-title" title="${p.nombre}">${p.nombre}</h3>
+          
+          <div class="price-section">
+            <div class="price-group">
+              <span class="price-label">Precio</span>
+              <span class="price-val price-sell">${formatCurrency(p.precio !== undefined ? p.precio : p.precio_costo)}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="product-actions">
+          <a href="${productUrl}" target="_blank" rel="noopener" class="btn-view-product">
+            Ver en tienda
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Ruta GET / - Sirve public/index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Ruta GET /product.html - Sirve public/product.html
+app.get('/product.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'product.html'));
+});
+
+// Ruta GET /admin - Valida ?key=admin2026, sirve public/admin.html o redirige a /
+app.get('/admin', (req, res) => {
+  const { key } = req.query;
+  if (key === 'admin2026') {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+  } else {
+    res.redirect('/');
+  }
+});
+
+// Ruta GET /api/productos/json - NUEVA: devuelve todos los productos como JSON puro
+app.get('/api/productos/json', (req, res) => {
+  try {
+    const products = getAllProducts();
+    res.json(products);
+  } catch (error) {
+    console.error('Error al obtener productos JSON:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ruta GET /api/producto/:sku - NUEVA: devuelve un producto específico por SKU como JSON
+app.get('/api/producto/:sku', (req, res) => {
+  try {
+    const { sku } = req.params;
+    const products = getAllProducts();
+    const product = products.find(p => p.sku === sku);
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ error: 'Producto no encontrado' });
+    }
+  } catch (error) {
+    console.error('Error al obtener producto por SKU:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ruta GET /api/productos/marcas - NUEVA: devuelve lista de marcas únicas con conteo
+app.get('/api/productos/marcas', (req, res) => {
+  try {
+    const products = getAllProducts();
+    const brandCounts = {};
+    const brandKeywords = ['Apple', 'HP', 'Lenovo', 'Dell', 'Dynabook', 'Quasad', 'Samsung', 'Asus', 'Acer', 'MSI'];
+
+    // Inicializar marcas con 0
+    brandKeywords.forEach(brand => {
+      brandCounts[brand] = 0;
+    });
+    brandCounts['Otros'] = 0;
+
+    products.forEach(p => {
+      const name = p.nombre || '';
+      let matchedBrand = 'Otros';
+      for (const brand of brandKeywords) {
+        if (name.toLowerCase().includes(brand.toLowerCase())) {
+          matchedBrand = brand;
+          break;
+        }
+      }
+      brandCounts[matchedBrand] = (brandCounts[matchedBrand] || 0) + 1;
+    });
+
+    // Filtrar solo las marcas que tienen productos para no mostrar categorías vacías
+    const result = Object.keys(brandCounts)
+      .map(brand => ({ brand, count: brandCounts[brand] }))
+      .filter(item => item.count > 0);
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error al obtener marcas:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ruta GET /api/productos - Devuelve las tarjetas del catálogo (para panel admin u otros)
+
+app.get('/api/productos', (req, res) => {
+  try {
+    const products = getAllProducts();
+    const html = renderProductCards(products);
+    res.send(html);
+  } catch (error) {
+    console.error('Error al obtener productos:', error);
+    res.status(500).send(`
+      <div class="error-alert-wrapper animate-shake">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="alert-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div class="error-details">
+          <strong>Error al cargar catálogo:</strong> ${error.message}
+        </div>
+      </div>
+    `);
+  }
+});
+
+// Ruta POST /api/scrape - Ejecuta el scraping y devuelve las tarjetas actualizadas
+app.post('/api/scrape', async (req, res) => {
+  try {
+    console.log('Iniciando proceso de scraping a petición del usuario...');
+    const totalScraped = await scrapeLaptops();
+    console.log(`Se procesaron ${totalScraped} productos con éxito.`);
+    
+    // Obtener los productos actualizados de la base de datos
+    const products = getAllProducts();
+    const html = renderProductCards(products);
+    res.send(html);
+  } catch (error) {
+    console.error('Error al ejecutar el scraper:', error);
+    res.status(500).send(`
+      <div class="error-alert-wrapper animate-shake">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="alert-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div class="error-details">
+          <strong>Error de Scraping:</strong> ${error.message || 'No se pudo conectar al sitio web.'}
+          <br><small>Por favor verifica tu conexión a internet o el estado de Tecnomegastore.</small>
+        </div>
+      </div>
+    `);
+  }
+});
+
+// --- PLANIFICADOR DE ACTUALIZACIÓN AUTOMÁTICA EN SEGUNDO PLANO ---
+const UN_HORA = 60 * 60 * 1000; // 60 minutos en milisegundos
+
+setInterval(async () => {
+  console.log('🕒 [Automatización] Iniciando actualización rutinaria de laptops en segundo plano...');
+  try {
+    const totalScraped = await scrapeLaptops();
+    console.log(`🕒 [Automatización] Actualización exitosa. ${totalScraped} productos sincronizados.`);
+  } catch (error) {
+    console.error('❌ [Automatización] Fallo en la sincronización periódica:', error.message);
+  }
+}, UN_HORA);
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+  console.log(`\n======================================================`);
+  console.log(`🚀 Servidor iniciado en http://localhost:${PORT}`);
+  console.log(`📂 Servidor estático apuntando a /public`);
+  console.log(`======================================================\n`);
+});
+</file>
+
+</files>

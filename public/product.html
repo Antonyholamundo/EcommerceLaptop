@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Producto - NoteStore Ecuador</title>
+
+  <!-- Favicon SVG -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
+
+  <!-- Enlace CSS Modular -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <!-- ==========================================
+       HEADER FIJO (Sticky)
+       ========================================== -->
+  <header class="header-sticky">
+    <div class="header-container">
+      <!-- Logo Izquierda -->
+      <a href="/" class="logo-link" id="home-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+        </svg>
+        <span>NoteStore <span class="logo-accent">Ecuador</span></span>
+      </a>
+
+      <!-- Barra de Búsqueda Centro (Inactiva en esta página, redirige a index.html en submit/cambio) -->
+      <div class="search-wrapper">
+        <form action="/" method="GET" id="search-form">
+          <div class="search-input-container">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" name="search" id="search-box" class="search-input"
+              placeholder="Buscar en la tienda principal...">
+          </div>
+        </form>
+      </div>
+
+      <!-- Carrito Derecha -->
+      <div class="header-actions">
+        <button class="cart-toggle-btn" id="cart-toggle-btn" aria-label="Ver carrito">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span class="cart-count-badge" id="cart-badge-count">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       BREADCRUMB DINÁMICO
+       ========================================== -->
+  <div class="breadcrumb-container">
+    <nav class="breadcrumb-nav" id="breadcrumb-display" aria-label="Ruta de navegación">
+      <a href="/">Inicio</a> &gt; <a href="/">Laptops</a> &gt; <span id="breadcrumb-current">Cargando producto...</span>
+    </nav>
+  </div>
+
+  <!-- ==========================================
+       LAYOUT DE DETALLE DE PRODUCTO
+       ========================================== -->
+  <div class="product-detail-layout" id="product-detail-display">
+
+    <!-- Sección Principal (Galería + Info) -->
+    <div class="detail-main-section">
+
+      <!-- Columna Izquierda: Galería -->
+      <div class="gallery-column">
+        <div class="main-image-wrapper" id="main-image-container">
+          <span class="gallery-brand-badge" id="product-detail-brand">Apple</span>
+
+          <!-- Botón de compartir -->
+          <button class="gallery-share-btn" id="btn-share-product" title="Copiar enlace"
+            aria-label="Copiar enlace al portapapeles">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+            </svg>
+          </button>
+
+          <!-- Imagen Principal -->
+          <img
+            src="data:image/svg+xml;utf8,<svg class=%22laptop-placeholder-svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%221.2%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25%22 /></svg>"
+            id="product-detail-image" alt="Producto">
+        </div>
+
+        <!-- Fila de Miniaturas -->
+        <div class="thumbnails-row" id="thumbnails-row">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Información General -->
+      <div class="info-column">
+        <div>
+          <span class="info-sku-label" id="product-detail-sku">SKU: COMAPLMHFA4LLAS</span>
+          <h1 class="info-title" id="product-detail-title">MacBook Neo A18 Pro Apple 8GB 256GB</h1>
+        </div>
+
+        <!-- Valoración Simulada -->
+        <div class="info-rating-row">
+          <div class="stars-container">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <svg viewBox="0 0 20 20" fill="currentColor" class="star-empty">
+              <path
+                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          </div>
+          <span class="rating-value-bold">4.5</span>
+          <a href="#tab-reviews" class="reviews-link-simulated" id="reviews-count-link">(127 reseñas)</a>
+        </div>
+
+        <!-- Precios -->
+        <div class="info-prices-card">
+          <div class="info-price-ref-row">
+            <span>Precio original:</span>
+            <span class="price-ref-strike" id="product-detail-price-ref">$1,072.21</span>
+            <span class="price-savings-badge">Ahorra 13%</span>
+          </div>
+          <div class="info-price-main" id="product-detail-price">$932.36</div>
+
+          <div class="info-stock-promo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd" />
+            </svg>
+            <span>En stock · Listo para envío inmediato</span>
+          </div>
+        </div>
+
+        <!-- Selector de Cantidad + Botones Acción -->
+        <div class="info-quantity-actions-grid">
+          <div class="quantity-picker">
+            <button id="btn-qty-minus" aria-label="Restar una unidad">-</button>
+            <input type="text" id="qty-input" value="1" readonly>
+            <button id="btn-qty-plus" aria-label="Sumar una unidad">+</button>
+          </div>
+
+          <!-- Agregar al Carrito -->
+          <button class="info-add-btn-large" id="btn-add-to-cart-detail">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Agregar al carrito
+          </button>
+
+          <!-- Ver en Mayorista -->
+          <a href="#" target="_blank" rel="noopener" class="info-origin-btn-outline" id="btn-origin-detail">
+            Ver en Tecnomegastore →
+          </a>
+        </div>
+
+        <div class="divider-line"></div>
+
+        <!-- Specs Rápidas -->
+        <div class="quick-specs-grid" id="quick-specs-container">
+          <!-- Generadas dinámicamente -->
+        </div>
+
+        <div class="divider-line"></div>
+
+        <!-- Alerta de Sincronización -->
+        <div class="update-date-alert">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span id="product-detail-sync-date">Precio actualizado el 01/06/2026 a las 15:59</span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Pestañas (Tabs) de Información Completa -->
+    <section class="tabs-outer-wrapper">
+      <div class="tabs-headers-row" role="tablist">
+        <button class="tab-nav-btn active" id="tab-btn-specs" role="tab" aria-selected="true"
+          aria-controls="tab-panel-specs">Especificaciones completas</button>
+        <button class="tab-nav-btn" id="tab-btn-reviews" role="tab" aria-selected="false"
+          aria-controls="tab-panel-reviews">Opiniones simuladas</button>
+        <button class="tab-nav-btn" id="tab-btn-shipping" role="tab" aria-selected="false"
+          aria-controls="tab-panel-shipping">Envío y garantía</button>
+      </div>
+
+      <div class="tabs-content-box">
+
+        <!-- Tab 1: Especificaciones -->
+        <div class="tab-panel active" id="tab-panel-specs" role="tabpanel">
+          <table class="specs-table" id="product-specs-table">
+            <!-- Rellenado dinámicamente -->
+          </table>
+        </div>
+
+        <!-- Tab 2: Reseñas -->
+        <div class="tab-panel" id="tab-panel-reviews" role="tabpanel">
+          <div class="reviews-grid-tab">
+            <div class="reviews-summary-column">
+              <span class="reviews-summary-score">4.5 <span
+                  class="reviews-summary-total">de 5</span></span>
+
+              <div class="stars-container" style="margin-bottom:0.5rem;">
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;color:#D1D5DB;">
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+
+              <div class="star-bars-list">
+                <div class="star-bar-row">
+                  <span>5 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 60%;"></div>
+                  </div>
+                  <span class="star-bar-percent">60%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>4 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 25%;"></div>
+                  </div>
+                  <span class="star-bar-percent">25%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>3 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 10%;"></div>
+                  </div>
+                  <span class="star-bar-percent">10%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>2 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 3%;"></div>
+                  </div>
+                  <span class="star-bar-percent">3%</span>
+                </div>
+                <div class="star-bar-row">
+                  <span>1 ★</span>
+                  <div class="star-bar-track">
+                    <div class="star-bar-fill" style="width: 2%;"></div>
+                  </div>
+                  <span class="star-bar-percent">2%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="reviews-items-list">
+              <!-- Reseña 1 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">LA</div>
+                    <div>
+                      <div class="review-author-name">Luis Andrade</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 3 semanas</span>
+                </div>
+                <p class="review-item-text">Excelente laptop. El rendimiento superó todas mis expectativas y la pantalla
+                  es de una nitidez increíble. NoteStore me la entregó súper rápido y a un precio mucho menor que en
+                  locales físicos en Quito. ¡Recomendada!</p>
+              </div>
+
+              <!-- Reseña 2 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">MP</div>
+                    <div>
+                      <div class="review-author-name">María Pino</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;color:#D1D5DB;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 1 mes</span>
+                </div>
+                <p class="review-item-text">La calidad de construcción es sobresaliente. Es súper ligera e ideal para
+                  llevar a la universidad. El único detalle es que la duración de la batería bajo uso intenso es de unas
+                  6 horas, pero carga extremadamente rápido.</p>
+              </div>
+
+              <!-- Reseña 3 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">FC</div>
+                    <div>
+                      <div class="review-author-name">Fernando Castro</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 2 meses</span>
+                </div>
+                <p class="review-item-text">Tenia dudas por el precio tan bajo, pero el SKU es original de
+                  Tecnomegastore, me validaron la garantía local sin problemas. Excelente atención del soporte técnico.
+                  Volveré a comprar.</p>
+              </div>
+
+              <!-- Reseña 4 -->
+              <div class="review-item-card">
+                <div class="review-header">
+                  <div class="review-author-info">
+                    <div class="review-avatar-circle">DS</div>
+                    <div>
+                      <div class="review-author-name">Diana Silva</div>
+                      <div class="stars-container">
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;color:#D1D5DB;">
+                          <path
+                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="review-item-date">Hace 3 meses</span>
+                </div>
+                <p class="review-item-text">El teclado en español es súper cómodo y silencioso. La uso todo el día para
+                  mi trabajo de oficina y no calienta nada. Excelente compra por el precio ofertado.</p>
+              </div>
+
+              <!-- Botón Ver Todas -->
+              <button class="btn-reviews-more-sim">Ver todas las reseñas</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Envío y Garantía -->
+        <div class="tab-panel" id="tab-panel-shipping" role="tabpanel">
+          <div class="shipping-tab-grid">
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1-1.125V11.25a9 9 0 019-9h1.5a1.125 1.125 0 011 1.125v1.5a3.375 3.375 0 003.375 3.375h1.5a1.125 1.125 0 011 1.125v1.5a3.375 3.375 0 003.375 3.375H9.75m11.25 3.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125A1.125 1.125 0 0021 16.5V13.5a9 9 0 00-9-9h-1.5a1.125 1.125 0 00-1 1.125v1.5a3.375 3.375 0 01-3.375 3.375H4.875a1.125 1.125 0 00-1 1.125v1.5a3.375 3.375 0 01-3.375 3.375H1.125A1.125 1.125 0 000 16.5v.75m11.25 1.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125" />
+              </svg>
+              <div class="shipping-card-title">Envío a todo Ecuador</div>
+              <p class="shipping-card-desc">Despachos diarios vía Servientrega o Cooperativa a todas las provincias con
+                seguro de transporte integrado.</p>
+            </div>
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" />
+              </svg>
+              <div class="shipping-card-title">Garantía oficial local</div>
+              <p class="shipping-card-desc">Garantía directa del fabricante de 1 año válida en todos los centros de
+                servicios autorizados del país.</p>
+            </div>
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7C4.68 11.58 4.5 12.72 4.5 14c0 1.28.18 2.42.338 3.362a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.092-1.209.138-2.43.138-3.662z" />
+              </svg>
+              <div class="shipping-card-title">Devolución garantizada</div>
+              <p class="shipping-card-desc">Si el equipo presenta algún desperfecto de fábrica en los primeros 7 días,
+                realizamos el cambio inmediato.</p>
+            </div>
+            <div class="shipping-info-card">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <div class="shipping-card-title">Soporte técnico premium</div>
+              <p class="shipping-card-desc">Atención telefónica y por chat personalizada para configuraciones e
+                instalaciones de software inicial.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Sección: Productos Relacionados -->
+    <section class="related-products-section">
+      <h3 class="related-title">También te puede interesar</h3>
+      <div class="related-scroll-wrapper">
+        <div class="related-grid" id="related-products-grid">
+          <!-- Renderizado dinámico desde product.js -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ==========================================
+       CARRITO DESLIZABLE (Drawer)
+       ========================================== -->
+  <div class="cart-drawer-overlay" id="cart-drawer-overlay"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <!-- Cabecera -->
+    <div class="cart-drawer-header">
+      <span class="cart-drawer-title" id="cart-drawer-title">Mi carrito (0 productos)</span>
+      <button class="cart-drawer-close-btn" id="cart-close-btn" aria-label="Cerrar carrito">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Cuerpo (Lista de items) -->
+    <div class="cart-drawer-body" id="cart-drawer-body">
+      <!-- Items agregados por localStorage -->
+      <div class="empty-cart-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+        <p>Tu carrito está vacío</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cart-drawer-footer">
+      <div class="cart-summary-row">
+        <span>Subtotal</span>
+        <span class="cart-subtotal-val" id="cart-subtotal-val">$0.00</span>
+      </div>
+      <p class="cart-shipping-notice">Envío calculado al finalizar</p>
+      <button class="btn-checkout-drawer" id="cart-checkout-btn">Finalizar compra</button>
+      <button class="btn-close-drawer" id="cart-continue-btn">Seguir comprando</button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TOAST NOTIFICATIONS (POPUP)
+       ========================================== -->
+  <div class="toast-container" id="toast-notification">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toast-text">¡Enlace copiado!</span>
+  </div>
+
+  <!-- ==========================================
+       FOOTER
+       ========================================== -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>NoteStore Ecuador</h4>
+        <p>Tu e-commerce de laptops y dispositivos tecnológicos número uno en Ecuador. Precios de referencia
+          sincronizados directamente de distribuidores mayoristas oficiales para darte el mejor precio del mercado.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Links rápidos</h4>
+        <ul class="footer-links-list">
+          <li><a href="/">Catálogo</a></li>
+          <li><a href="/admin?key=admin2026">Panel de control scraper</a></li>
+          <li><a href="https://tecnomegastore.ec" target="_blank" rel="noopener">Tecnomegastore EC</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Información técnica</h4>
+        <p>Base de datos: JSON nativa estructurada por SKU.<br>Raspado en segundo plano: Playwright Stealth y Express
+          local. 100% libre de cookies intrusivas.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 NoteStore Ecuador · Precios referenciados de Tecnomegastore Ecuador. Todos los derechos reservados.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/cart.js"></script>
+  <script src="/js/product.js"></script>
+</body>
+
+</html>
