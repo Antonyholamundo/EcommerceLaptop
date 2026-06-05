@@ -1,196 +1,237 @@
 /**
- * routes/scraper.js — Ruta de ejecución de scraping
- * 
- * Devuelve JSON con el resultado, NO HTML.
+ * routes/scraper.js — ScraperAgent v2
+ *
+ * Endpoints de sincronización. Ahora devuelven el JSON estructurado completo
+ * de cada ciclo de sync (con sync_id, summary, changes, errors).
+ *
+ * Protección: todos los endpoints de escritura (POST) y los de observabilidad
+ * sensible (status, errors) están protegidos con Basic Authentication.
+ * Solo GET /api/scrape/categories es público.
+ *
+ * Endpoints:
+ *   GET  /api/scrape/status      → últimos 20 registros de sync_log  [auth]
+ *   GET  /api/scrape/errors      → últimos 50 errores de scrape_errors [auth]
+ *   GET  /api/scrape/categories  → lista de categorías disponibles    [public]
+ *   POST /api/scrape/:category   → sync de una categoría por nombre   [auth]
  */
 
-const express = require('express');
-const router = express.Router();
-const { scrapeLaptops, scrapeDesktops, scrapeMinipcs, scrapeMotherboards, scrapeMonitors, scrapeGamingMonitors, scrapeAllComponents } = require('../scraper');
-const { getAllProducts } = require('../database');
+'use strict';
+
+const express    = require('express');
+const router     = express.Router();
+const { adminAuth } = require('./admin');
+
+const {
+  syncLaptops,
+  syncDesktops,
+  syncMinipcs,
+  syncMotherboards,
+  syncMonitors,
+  syncGamingMonitors,
+  syncAllComponents,
+  syncByName,
+  syncAll,
+} = require('../scraper');
+
+const { CATEGORY_MAP }  = require('../config');
+const { getRecentSyncs, getRecentErrors } = require('../database');
+
+// ============================================================
+// HELPERS
+// ============================================================
 
 /**
- * POST /api/scrape
- * 
- * Ejecuta el scraping de laptops y devuelve el resultado como JSON.
+ * Wrapper genérico para ejecutar un sync y responder con el JSON estructurado.
+ * Maneja errores globales del proceso (no de productos individuales).
  */
-router.post('/', async (req, res) => {
+function runSync(syncFn, res) {
+  syncFn()
+    .then((result) => res.json(result))
+    .catch((err) => {
+      console.error('[routes/scraper] Error crítico:', err);
+      res.status(500).json({
+        error: 'sync_failed',
+        message: err.message || 'El proceso de sincronización falló inesperadamente.',
+      });
+    });
+}
+
+// ============================================================
+// SYNC COMPLETO — TODAS LAS CATEGORÍAS
+// ============================================================
+
+/**
+ * Estado global para evitar syncs simultáneos.
+ * Un sync completo puede durar 30-60 min — no queremos dos corriendo a la vez.
+ */
+let fullSyncRunning = false;
+let fullSyncStartedAt = null;
+
+/**
+ * POST /api/scrape/all
+ * Lanza syncAll() en BACKGROUND y responde 202 inmediatamente.
+ * El proceso corre completo aunque el cliente cierre la conexión.
+ * Consulta /api/scrape/status para ver el progreso por categoría.
+ */
+router.post('/all', adminAuth, (req, res) => {
+  if (fullSyncRunning) {
+    return res.status(409).json({
+      error: 'sync_already_running',
+      message: 'Ya hay un sync completo en curso.',
+      started_at: fullSyncStartedAt,
+    });
+  }
+
+  fullSyncRunning = true;
+  fullSyncStartedAt = new Date().toISOString();
+
+  // Responder inmediatamente — el proceso sigue en background
+  res.status(202).json({
+    status: 'accepted',
+    message: 'Sync completo de todas las categorías iniciado en background.',
+    started_at: fullSyncStartedAt,
+    categories: 14,
+    note: 'Consulta GET /api/scrape/status para ver el avance por categoría.',
+  });
+
+  // Lanzar sin await — corre independiente de la respuesta HTTP
+  syncAll()
+    .then((result) => {
+      console.log(`\n✅ [POST /api/scrape/all] Sync completo finalizado.`);
+      console.log(`   Resumen: +${result.summary.inserted} | ~${result.summary.updated} | -${result.summary.deleted} | ❌${result.summary.errors}`);
+    })
+    .catch((err) => {
+      console.error(`\n❌ [POST /api/scrape/all] Error crítico en syncAll: ${err.message}`);
+    })
+    .finally(() => {
+      fullSyncRunning = false;
+      fullSyncStartedAt = null;
+    });
+});
+
+/**
+ * GET /api/scrape/all/status
+ * Indica si hay un sync completo actualmente en curso.
+ */
+router.get('/all/status', (req, res) => {
+  res.json({
+    running: fullSyncRunning,
+    started_at: fullSyncStartedAt,
+  });
+});
+
+// ============================================================
+// ENDPOINTS DE OBSERVABILIDAD
+// ============================================================
+
+/**
+ * GET /api/scrape/status
+ * Retorna los últimos 20 sync_log para el panel de admin.
+ */
+router.get('/status', adminAuth, async (req, res) => {
   try {
-    console.log('Iniciando proceso de scraping de laptops a petición del usuario...');
-    const totalScraped = await scrapeLaptops();
-    console.log(`Se procesaron ${totalScraped} laptops con éxito.`);
-
-    const products = await getAllProducts('laptops');
-
-    res.json({
-      success: true,
-      message: `Se procesaron ${totalScraped} laptops con éxito.`,
-      totalScraped,
-      totalProducts: products.length,
-    });
-  } catch (error) {
-    console.error('Error al ejecutar el scraper:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'No se pudo conectar al sitio web.',
-      message: 'Por favor verifica tu conexión a internet o el estado de Tecnomegastore.',
-    });
+    const limit = parseInt(req.query.limit) || 20;
+    const syncs = await getRecentSyncs(limit);
+    const parsed = syncs.map((s) => ({
+      ...s,
+      summary: s.summary_json ? JSON.parse(s.summary_json) : {},
+    }));
+    res.json({ syncs: parsed, count: parsed.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
 /**
- * POST /api/scrape/desktops
- * 
- * Ejecuta el scraping de PC de escritorio y devuelve el resultado como JSON.
+ * GET /api/scrape/errors
+ * Retorna los últimos 50 errores de scraping.
  */
-router.post('/desktops', async (req, res) => {
+router.get('/errors', adminAuth, async (req, res) => {
   try {
-    console.log('Iniciando proceso de scraping de PC desktop a petición del usuario...');
-    const totalScraped = await scrapeDesktops();
-    console.log(`Se procesaron ${totalScraped} PC desktop con éxito.`);
-
-    res.json({
-      success: true,
-      message: `Se procesaron ${totalScraped} PC de escritorio con éxito.`,
-      totalScraped,
-    });
-  } catch (error) {
-    console.error('Error al ejecutar el scraper de desktops:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'No se pudo conectar al sitio web.',
-      message: 'Por favor verifica tu conexión a internet o el estado de Tecnomegastore.',
-    });
+    const limit = parseInt(req.query.limit) || 50;
+    const errors = await getRecentErrors(limit);
+    res.json({ errors, count: errors.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
 /**
- * POST /api/scrape/minipcs
- * 
- * Ejecuta el scraping de Mini PCs y devuelve el resultado como JSON.
+ * GET /api/scrape/categories
+ * Lista las categorías disponibles para sync.
  */
-router.post('/minipcs', async (req, res) => {
-  try {
-    console.log('Iniciando proceso de scraping de Mini PCs a petición del usuario...');
-    const totalScraped = await scrapeMinipcs();
-    console.log(`Se procesaron ${totalScraped} Mini PCs con éxito.`);
+router.get('/categories', (req, res) => {
+  const categories = Object.entries(CATEGORY_MAP).map(([name, { label }]) => ({
+    name,
+    label,
+  }));
+  res.json({ categories });
+});
 
-    res.json({
-      success: true,
-      message: `Se procesaron ${totalScraped} Mini PCs con éxito.`,
-      totalScraped,
-    });
-  } catch (error) {
-    console.error('Error al ejecutar el scraper de minipcs:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'No se pudo conectar al sitio web.',
-      message: 'Por favor verifica tu conexión a internet o el estado de Tecnomegastore.',
-    });
-  }
+// ============================================================
+// ENDPOINTS DE SYNC POR CATEGORÍA (heredados)
+// ============================================================
+
+/** POST /api/scrape → sync de laptops (retrocompatibilidad) */
+router.post('/', adminAuth, (req, res) => {
+  console.log('[API] POST /api/scrape → syncLaptops');
+  runSync(syncLaptops, res);
+});
+
+/** POST /api/scrape/desktops */
+router.post('/desktops', adminAuth, (req, res) => {
+  console.log('[API] POST /api/scrape/desktops');
+  runSync(syncDesktops, res);
+});
+
+/** POST /api/scrape/minipcs */
+router.post('/minipcs', adminAuth, (req, res) => {
+  console.log('[API] POST /api/scrape/minipcs');
+  runSync(syncMinipcs, res);
+});
+
+/** POST /api/scrape/motherboards */
+router.post('/motherboards', adminAuth, (req, res) => {
+  console.log('[API] POST /api/scrape/motherboards');
+  runSync(syncMotherboards, res);
+});
+
+/** POST /api/scrape/monitors */
+router.post('/monitors', adminAuth, (req, res) => {
+  console.log('[API] POST /api/scrape/monitors');
+  runSync(syncMonitors, res);
+});
+
+/** POST /api/scrape/gaming-monitors */
+router.post('/gaming-monitors', adminAuth, (req, res) => {
+  console.log('[API] POST /api/scrape/gaming-monitors');
+  runSync(syncGamingMonitors, res);
+});
+
+/** POST /api/scrape/components → sync de los 8 componentes en secuencia */
+router.post('/components', adminAuth, (req, res) => {
+  console.log('[API] POST /api/scrape/components');
+  runSync(syncAllComponents, res);
 });
 
 /**
- * POST /api/scrape/motherboards
- * 
- * Ejecuta el scraping de Motherboards y devuelve el resultado como JSON.
+ * POST /api/scrape/:category
+ * Sync dinámico por nombre de categoría.
+ * e.g. POST /api/scrape/procesadores
  */
-router.post('/motherboards', async (req, res) => {
-  try {
-    console.log('Iniciando proceso de scraping de Motherboards a petición del usuario...');
-    const totalScraped = await scrapeMotherboards();
-    console.log(`Se procesaron ${totalScraped} Motherboards con éxito.`);
+router.post('/:category', adminAuth, (req, res) => {
+  const { category } = req.params;
+  console.log(`[API] POST /api/scrape/${category}`);
 
-    res.json({
-      success: true,
-      message: `Se procesaron ${totalScraped} Motherboards con éxito.`,
-      totalScraped,
-    });
-  } catch (error) {
-    console.error('Error al ejecutar el scraper de motherboards:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'No se pudo conectar al sitio web.',
-      message: 'Por favor verifica tu conexión a internet o el estado de Tecnomegastore.',
+  if (!CATEGORY_MAP[category]) {
+    return res.status(400).json({
+      error: 'unknown_category',
+      message: `Categoría '${category}' no reconocida.`,
+      available: Object.keys(CATEGORY_MAP),
     });
   }
-});
 
-/**
- * POST /api/scrape/monitors
- * 
- * Ejecuta el scraping de Monitores y devuelve el resultado como JSON.
- */
-router.post('/monitors', async (req, res) => {
-  try {
-    console.log('Iniciando proceso de scraping de Monitores a petición del usuario...');
-    const totalScraped = await scrapeMonitors();
-    console.log(`Se procesaron ${totalScraped} Monitores con éxito.`);
-
-    res.json({
-      success: true,
-      message: `Se procesaron ${totalScraped} Monitores con éxito.`,
-      totalScraped,
-    });
-  } catch (error) {
-    console.error('Error al ejecutar el scraper de monitores:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'No se pudo conectar al sitio web.',
-      message: 'Por favor verifica tu conexión a internet o el estado de Tecnomegastore.',
-    });
-  }
-});
-
-/**
- * POST /api/scrape/gaming-monitors
- * 
- * Ejecuta el scraping de Gaming Monitores y devuelve el resultado como JSON.
- */
-router.post('/gaming-monitors', async (req, res) => {
-  try {
-    console.log('Iniciando proceso de scraping de Gaming Monitores a petición del usuario...');
-    const totalScraped = await scrapeGamingMonitors();
-    console.log(`Se procesaron ${totalScraped} Gaming Monitores con éxito.`);
-
-    res.json({
-      success: true,
-      message: `Se procesaron ${totalScraped} Gaming Monitores con éxito.`,
-      totalScraped,
-    });
-  } catch (error) {
-    console.error('Error al ejecutar el scraper de gaming monitors:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'No se pudo conectar al sitio web.',
-      message: 'Por favor verifica tu conexión a internet o el estado de Tecnomegastore.',
-    });
-  }
-});
-
-/**
- * POST /api/scrape/components
- * 
- * Ejecuta el scraping secuencial de los 8 componentes y devuelve el resultado.
- */
-router.post('/components', async (req, res) => {
-  try {
-    console.log('Iniciando proceso de scraping global de componentes a petición del usuario...');
-    const totalScraped = await scrapeAllComponents();
-    console.log(`Se procesaron ${totalScraped} Componentes con éxito.`);
-
-    res.json({
-      success: true,
-      message: `Se procesaron ${totalScraped} Componentes con éxito en total.`,
-      totalScraped,
-    });
-  } catch (error) {
-    console.error('Error al ejecutar el scraper global de componentes:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'No se pudo completar el scraping global.',
-    });
-  }
+  runSync(() => syncByName(category), res);
 });
 
 module.exports = router;

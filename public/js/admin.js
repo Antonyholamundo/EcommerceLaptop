@@ -438,12 +438,13 @@ async function handleScrapeGamingMonitors() {
     const response = await fetch('/api/scrape/gaming-monitors', { method: 'POST' });
     const result = await response.json();
 
-    if (result.success) {
+    if (result.error) {
+      console.error('Error de scraping gaming monitores:', result.error);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      console.log(`[Sync] Gaming Monitores: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastGamingMonitors();
       await fetchGamingMonitorCards();
-    } else {
-      console.error('Error de scraping gaming monitores:', result.error);
-      alert(`Error de Scraping: ${result.error || 'Error desconocido'}\n${result.message || ''}`);
     }
   } catch (error) {
     console.error('Error al ejecutar scrape gaming monitores:', error);
@@ -465,12 +466,13 @@ async function handleScrapeMonitors() {
     const response = await fetch('/api/scrape/monitors', { method: 'POST' });
     const result = await response.json();
 
-    if (result.success) {
+    if (result.error) {
+      console.error('Error de scraping monitores:', result.error);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      console.log(`[Sync] Monitores: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastMonitors();
       await fetchMonitorCards();
-    } else {
-      console.error('Error de scraping monitores:', result.error);
-      alert(`Error de Scraping: ${result.error || 'Error desconocido'}\n${result.message || ''}`);
     }
   } catch (error) {
     console.error('Error al ejecutar scrape monitores:', error);
@@ -538,12 +540,14 @@ async function handleScrape() {
     const response = await fetch('/api/scrape', { method: 'POST' });
     const result = await response.json();
 
-    if (result.success) {
+    if (result.error) {
+      console.error('Error de scraping:', result.error);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      // v2: result contiene sync_id, summary, changes
+      console.log(`[Sync] Laptops: +${result.summary?.inserted ?? 0} insertados, ~${result.summary?.updated ?? 0} actualizados, -${result.summary?.deleted ?? 0} eliminados`);
       await fetchLastProducts();
       await fetchCatalogCards();
-    } else {
-      console.error('Error de scraping:', result.error);
-      alert(`Error de Scraping: ${result.error || 'Error desconocido'}\n${result.message || ''}`);
     }
   } catch (error) {
     console.error('Error al ejecutar scrape:', error);
@@ -565,12 +569,13 @@ async function handleScrapeDesktops() {
     const response = await fetch('/api/scrape/desktops', { method: 'POST' });
     const result = await response.json();
 
-    if (result.success) {
+    if (result.error) {
+      console.error('Error de scraping desktops:', result.error);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      console.log(`[Sync] Desktops: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastDesktops();
       await fetchDesktopCards();
-    } else {
-      console.error('Error de scraping desktops:', result.error);
-      alert(`Error de Scraping: ${result.error || 'Error desconocido'}\n${result.message || ''}`);
     }
   } catch (error) {
     console.error('Error al ejecutar scrape desktops:', error);
@@ -592,12 +597,13 @@ async function handleScrapeMinipcs() {
     const response = await fetch('/api/scrape/minipcs', { method: 'POST' });
     const result = await response.json();
 
-    if (result.success) {
+    if (result.error) {
+      console.error('Error de scraping minipcs:', result.error);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      console.log(`[Sync] Mini PCs: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastMinipcs();
       await fetchMinipcCards();
-    } else {
-      console.error('Error de scraping minipcs:', result.error);
-      alert(`Error de Scraping: ${result.error || 'Error desconocido'}\n${result.message || ''}`);
     }
   } catch (error) {
     console.error('Error al ejecutar scrape minipcs:', error);
@@ -619,12 +625,13 @@ async function handleScrapeMotherboards() {
     const response = await fetch('/api/scrape/motherboards', { method: 'POST' });
     const result = await response.json();
 
-    if (result.success) {
+    if (result.error) {
+      console.error('Error de scraping motherboards:', result.error);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      console.log(`[Sync] Motherboards: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastMotherboards();
       await fetchMotherboardCards();
-    } else {
-      console.error('Error de scraping motherboards:', result.error);
-      alert(`Error de Scraping: ${result.error || 'Error desconocido'}\n${result.message || ''}`);
     }
   } catch (error) {
     console.error('Error al ejecutar scrape motherboards:', error);
@@ -646,12 +653,23 @@ async function handleScrapeComponents() {
     const response = await fetch('/api/scrape/components', { method: 'POST' });
     const result = await response.json();
 
-    if (result.success) {
-      await fetchComponentCards('procesadores', 'tabla-procesadores');
-      await fetchComponentCards('tarjetas-video', 'tabla-tarjetas-video');
-    } else {
+    if (result.error) {
       console.error('Error de scraping componentes:', result.error);
-      alert(`Error de Scraping: ${result.error || 'Error desconocido'}\n${result.message || ''}`);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      // result es un array de resultados por categoría
+      const results = Array.isArray(result) ? result : [result];
+      const total = results.reduce((s, r) => s + (r.summary?.inserted ?? 0), 0);
+      console.log(`[Sync] Componentes: ${total} insertados en total`);
+      // Refrescar todas las categorías de componentes
+      await fetchComponentCards('procesadores',   'tabla-procesadores');
+      await fetchComponentCards('tarjetas-video', 'tabla-tarjetas-video');
+      await fetchComponentCards('fuentes',        'tabla-fuentes');
+      await fetchComponentCards('coolers',        'tabla-coolers');
+      await fetchComponentCards('almacenamiento', 'tabla-almacenamiento');
+      await fetchComponentCards('ram',            'tabla-ram');
+      await fetchComponentCards('cases',          'tabla-cases');
+      await fetchComponentCards('ventiladores',   'tabla-ventiladores');
     }
   } catch (error) {
     console.error('Error al ejecutar scrape componentes:', error);
@@ -710,6 +728,7 @@ async function fetchComponentCards(cat, containerId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ── Datos principales al cargar ─────────────────────────────────────────
   fetchLastProducts();
   fetchCatalogCards();
   fetchLastDesktops();
@@ -723,6 +742,17 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchLastGamingMonitors();
   fetchGamingMonitorCards();
 
+  // ── Todas las categorías de componentes al cargar ───────────────────────
+  fetchComponentCards('procesadores',   'tabla-procesadores');
+  fetchComponentCards('tarjetas-video', 'tabla-tarjetas-video');
+  fetchComponentCards('fuentes',        'tabla-fuentes');
+  fetchComponentCards('coolers',        'tabla-coolers');
+  fetchComponentCards('almacenamiento', 'tabla-almacenamiento');
+  fetchComponentCards('ram',            'tabla-ram');
+  fetchComponentCards('cases',          'tabla-cases');
+  fetchComponentCards('ventiladores',   'tabla-ventiladores');
+
+  // ── Botones de scraping ─────────────────────────────────────────────────
   const scrapeBtn = document.getElementById('scrape-btn');
   if (scrapeBtn) {
     scrapeBtn.removeAttribute('hx-post');
@@ -775,7 +805,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (scrapeComponentsBtn) {
     scrapeComponentsBtn.addEventListener('click', handleScrapeComponents);
   }
-
-  fetchComponentCards('procesadores', 'tabla-procesadores');
-  fetchComponentCards('tarjetas-video', 'tabla-tarjetas-video');
 });

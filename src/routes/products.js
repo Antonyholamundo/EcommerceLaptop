@@ -63,8 +63,10 @@ router.get('/price-range', async (req, res) => {
 
 router.get('/all', async (req, res) => {
   try {
-    const products = await getAllProducts('laptops');
-    res.json(products);
+    const category = req.query.category || 'laptops';
+    const products = await getAllProducts(category);
+    const enriched = products.map(enrichProduct);
+    res.json(enriched);
   } catch (error) {
     console.error('Error al obtener todos los productos:', error);
     res.status(500).json({ error: error.message });

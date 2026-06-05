@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcuaCOMPU — Diagrama de Arquitectura</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 32px 24px 48px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.5px;
+    }
+
+    .header .subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    #diagram-wrapper {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 1400px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+      overflow: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 11px 24px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-capture {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+    }
+    .btn-capture:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
+
+    .btn-print {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+    .btn-print:hover { background: #273549; color: #f8fafc; }
+
+    .instructions {
+      margin-top: 28px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px 28px;
+      max-width: 700px;
+      width: 100%;
+    }
+
+    .instructions h3 {
+      color: #f8fafc;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .instructions ol {
+      color: #94a3b8;
+      font-size: 13px;
+      padding-left: 20px;
+      line-height: 2;
+    }
+
+    .instructions ol li strong {
+      color: #c4b5fd;
+    }
+
+    #status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #4ade80;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .btn-row, .instructions, .header .subtitle, #status { display: none; }
+      .header h1 { color: #0f172a; }
+      .badge { background: #6366f1; }
+      #diagram-wrapper {
+        border: none;
+        box-shadow: none;
+        background: white;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge">Documentación Técnica</div>
+    <h1>EcuaCOMPU — NoteStore Ecuador</h1>
+    <p class="subtitle">Diagrama de Arquitectura del Sistema · Generado el <span id="fecha"></span></p>
+  </div>
+
+  <div id="diagram-wrapper">
+    <div class="mermaid">
+flowchart LR
+
+  subgraph External["🌐 Externo"]
+    TMS["tecnomegastore.ec\n(Origen de datos)"]
+    WA["WhatsApp API\n(wa.me link)"]
+  end
+
+  subgraph Scraping["🕷️ Capa de Scraping"]
+    SCR["scraper.js\nsyncCategory / syncAll"]
+    CFG["config.js\nURLs · Timeouts · Categorías"]
+  end
+
+  subgraph Business["⚙️ Lógica de Negocio"]
+    SRV["server.js\nExpress · Scheduler"]
+    PS["productService.js\nenrichProduct · filterProducts"]
+    CS["computerService.js\ncreateComputerService"]
+    PRC["priceService.js\ncalculatePricing"]
+  end
+
+  subgraph Routes["🛣️ Rutas API"]
+    RP["routes/products.js\n/api/products"]
+    RD["routes/desktops.js\n/api/desktops"]
+    RM["routes/monitors.js\n/api/monitors"]
+    RGM["routes/gaming-monitors.js\n/api/gaming-monitors"]
+    RC["routes/components.js\n/api/components/:cat"]
+    RSC["routes/scraper.js\n/api/scrape"]
+    RA["routes/admin.js\n/admin"]
+    RMP["routes/minipcs.js\n/api/minipcs"]
+    RMB["routes/motherboards.js\n/api/motherboards"]
+  end
+
+  subgraph DataLayer["🗄️ Datos"]
+    DB["database.js\nSQLite — productos.db"]
+    SQLITE[("productos.db\nproducts\nproduct_specs\nscrape_errors\nsync_log\nproductos (legacy)")]
+  end
+
+  subgraph Presentation["🖥️ Presentación"]
+    HTML["public/*.html\nindex · laptops · product · admin..."]
+    JS["public/js/*.js\nproduct.js · cart.js · nav.js"]
+  end
+
+  TMS -->|"Playwright HTTP"| SCR
+  SCR -->|"lee URLs y timeouts"| CFG
+  SCR -->|"upsertProduct\nupsertProductSpecs\nlogSyncResult\nlogScrapeError"| DB
+  DB -->|"Lee/escribe"| SQLITE
+
+  SRV -->|"monta rutas"| RP & RD & RM & RGM & RC & RSC & RA & RMP & RMB
+  SRV -->|"scheduler cada 1h"| SCR
+  SRV -->|"lee config"| CFG
+
+  RP & RD & RM & RGM & RMP & RMB -->|"getAllProducts"| DB
+  RP & RD & RM & RGM & RMP & RMB -->|"enrichProduct"| PS
+  RC -->|"createComputerService"| CS
+  CS -->|"getAllProducts"| DB
+  CS -->|"enrichProduct · parseBrand"| PS
+  PS -->|"calculatePricing"| PRC
+  RSC -->|"syncCategory / syncAll"| SCR
+  RA -->|"sirve admin.html"| HTML
+
+  HTML -->|"fetch /api/..."| RP & RD & RC
+  JS -->|"renderiza datos"| HTML
+  JS -->|"enlace"| WA
+    </div>
+  </div>
+
+  <div id="status"></div>
+
+  <div class="btn-row">
+    <button class="btn-capture" onclick="exportarImagen()">
+      📷 Guardar como JPG
+    </button>
+    <button class="btn-print" onclick="window.print()">
+      🖨️ Imprimir / Guardar PDF
+    </button>
+  </div>
+
+  <div class="instructions">
+    <h3>📋 Instrucciones para exportar</h3>
+    <ol>
+      <li><strong>JPG directo:</strong> Haz clic en "Guardar como JPG" — se descarga automáticamente</li>
+      <li><strong>PDF de alta calidad:</strong> Clic en "Imprimir" → Destino: "Guardar como PDF" → Diseño Horizontal</li>
+      <li><strong>Captura manual:</strong> Win + Shift + S para seleccionar solo el diagrama</li>
+    </ol>
+  </div>
+
+  <!-- html2canvas para exportar a JPG -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <script>
+    // Fecha actual
+    document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-EC', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+
+    // Inicializar Mermaid con tema oscuro
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#6366f1',
+        primaryTextColor: '#f8fafc',
+        primaryBorderColor: '#818cf8',
+        lineColor: '#64748b',
+        secondaryColor: '#1e293b',
+        tertiaryColor: '#0f172a',
+        background: '#1e293b',
+        mainBkg: '#1e293b',
+        nodeBorder: '#475569',
+        clusterBkg: '#0f172a',
+        titleColor: '#f8fafc',
+        edgeLabelBackground: '#1e293b',
+        fontFamily: 'Segoe UI, system-ui, sans-serif',
+        fontSize: '13px',
+      },
+      flowchart: {
+        curve: 'basis',
+        padding: 20,
+        nodeSpacing: 40,
+        rankSpacing: 60,
+        htmlLabels: false,
+      }
+    });
+
+    async function exportarImagen() {
+      const status = document.getElementById('status');
+      status.textContent = '⏳ Generando imagen, espera un momento...';
+
+      try {
+        const wrapper = document.getElementById('diagram-wrapper');
+        const canvas = await html2canvas(wrapper, {
+          backgroundColor: '#1e293b',
+          scale: 2,           // 2x resolución para impresión nítida
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          width: wrapper.scrollWidth,
+          height: wrapper.scrollHeight,
+          windowWidth: wrapper.scrollWidth + 80,
+        });
+
+        const link = document.createElement('a');
+        link.download = 'EcuaCOMPU_Arquitectura.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+
+        status.textContent = '✅ ¡Imagen descargada correctamente!';
+        setTimeout(() => status.textContent = '', 4000);
+      } catch (err) {
+        status.textContent = '❌ Error al generar imagen. Intenta con el botón Imprimir.';
+        console.error(err);
+      }
+    }
+  </script>
+
+</body>
+</html>

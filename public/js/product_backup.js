@@ -137,48 +137,28 @@ function renderProductDetail() {
   `;
 
   // B. Imagen y Badge de Marca
-  const imageUrls = p.imagenes && Array.isArray(p.imagenes) && p.imagenes.length > 0
-    ? p.imagenes
-    : [p.imagen_url || laptopPlaceholderBase64];
-
-  // Set initial main image
-  imgProduct.src = imageUrls[0];
-  imgProduct.onerror = () => {
+  if (p.imagen_url) {
+    imgProduct.src = p.imagen_url;
+    imgProduct.onerror = () => {
+      imgProduct.src = laptopPlaceholderBase64;
+    };
+  } else {
     imgProduct.src = laptopPlaceholderBase64;
-  };
-
+  }
   imgBrandBadge.textContent = brand;
   imgBrandBadge.href = `${catInfo.url}?search=${brand}`;
 
-  // Render thumbnails for all image URLs
-  thumbnailsRow.innerHTML = imageUrls.map((url, idx) => `
-    <div class="thumbnail-box ${idx === 0 ? 'active' : ''}" data-index="${idx}">
-      <img src="${url}" alt="Miniatura ${idx + 1}" onerror="this.src='${laptopPlaceholderBase64}'">
+  // Miniatura única
+  thumbnailsRow.innerHTML = `
+    <div class="thumbnail-box">
+      <img src="${p.imagen_url || laptopPlaceholderBase64}" alt="Miniatura">
     </div>
-  `).join('');
-
-  // Add click handler to thumbnails to update main image
-  const thumbnailBoxes = thumbnailsRow.querySelectorAll('.thumbnail-box');
-  thumbnailBoxes.forEach(box => {
-    box.addEventListener('click', () => {
-      thumbnailBoxes.forEach(b => b.classList.remove('active'));
-      box.classList.add('active');
-      
-      const index = parseInt(box.getAttribute('data-index'));
-      let selectedUrl = imageUrls[index];
-      
-      if (selectedUrl.includes('/assets/images/sm/') && selectedUrl.includes('-sm.webp')) {
-        selectedUrl = selectedUrl.replace('/assets/images/sm/', '/assets/images/lg/').replace('-sm.webp', '-lg.webp');
-      }
-      
-      imgProduct.src = selectedUrl;
-    });
-  });
+  `;
 
   // C. Títulos, SKU, Fechas
   labelSku.textContent = `SKU: ${p.sku}`;
   titleProduct.textContent = p.nombre;
-
+  
   if (p.ultima_actualizacion) {
     dateSyncProduct.textContent = `Precio sincronizado el ${p.ultima_actualizacion}`;
   } else {
@@ -189,11 +169,8 @@ function renderProductDetail() {
   priceProduct.textContent = pricing.priceFormatted;
   priceRefProduct.textContent = pricing.referencePriceFormatted;
 
-  // E. Botón Destino WhatsApp
-  const productUrl = `${window.location.origin}/product.html?sku=${p.sku}&cat=${cat}`;
-  const whatsappMsg = `Hola, estoy interesado en este producto:\n\n*${p.nombre}*\nSKU: ${p.sku}\nPrecio: ${pricing.priceFormatted}\n\nEnlace del producto: ${productUrl}`;
-  btnOriginDetail.href = `https://wa.me/593999921624?text=${encodeURIComponent(whatsappMsg)}`;
-  btnOriginDetail.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.982L2 22l5.202-1.362a9.92 9.92 0 0 0 4.808 1.238h.005c5.507 0 9.99-4.478 9.99-9.986 0-2.67-1.037-5.18-2.92-7.062C17.201 2.946 14.685 2.001 12.012 2zm5.727 14.072c-.252.708-1.465 1.298-2.023 1.393-.483.082-.942.34-3.076-.499-2.73-1.074-4.464-3.83-4.599-4.015-.136-.184-1.1-1.455-1.1-2.775 0-1.32.691-1.968.936-2.228.246-.26.54-.324.72-.324h.519c.164 0 .385-.062.599.453.22.528.75 1.83.815 1.963.064.134.108.29.02.467-.089.177-.134.29-.267.447-.134.156-.282.346-.4.494-.134.168-.275.352-.119.62.156.268.694 1.144 1.488 1.848.79.7 1.457.917 1.724 1.052.267.134.423.111.579-.068.156-.18.668-.78.846-1.047.178-.268.357-.223.599-.134.244.09 1.545.727 1.812.86.267.135.446.202.513.314.067.112.067.652-.185 1.36z"/></svg>Comprar por WhatsApp`;
+  // E. Botón Destino Tecnomegastore
+  btnOriginDetail.href = p.url;
 
   // F. Agregar al carrito
   btnAddToCartDetail.onclick = () => {
@@ -306,7 +283,7 @@ function renderProductDetail() {
       </div>
       <div class="quick-spec-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
-        <span><strong>Tipo:</strong> ${specs.storageType}</span>
+        <span><strong>Tipo:</strong> ${specs.type}</span>
       </div>
       <div class="quick-spec-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /></svg>
@@ -347,7 +324,7 @@ function renderProductDetail() {
     quickSpecsHtml = `
       <div class="quick-spec-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
-        <span><strong>Tipo Cooler:</strong> ${specs.coolingType}</span>
+        <span><strong>Tipo Cooler:</strong> ${specs.type}</span>
       </div>
       <div class="quick-spec-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
@@ -445,7 +422,7 @@ function renderProductDetail() {
   } else if (specs.type === 'storage') {
     tableHtml += `
       <tr><td class="spec-name">Capacidad</td><td class="spec-val">${specs.capacity}</td></tr>
-      <tr><td class="spec-name">Tipo de Almacenamiento</td><td class="spec-val">${specs.storageType}</td></tr>
+      <tr><td class="spec-name">Tipo de Almacenamiento</td><td class="spec-val">${specs.type}</td></tr>
       <tr><td class="spec-name">Factor de Forma / Interfaz</td><td class="spec-val">${specs.formFactor}</td></tr>
     `;
   } else if (specs.type === 'power_supply') {
@@ -462,7 +439,7 @@ function renderProductDetail() {
     `;
   } else if (specs.type === 'cooling') {
     tableHtml += `
-      <tr><td class="spec-name">Tipo de Disipador</td><td class="spec-val">${specs.coolingType}</td></tr>
+      <tr><td class="spec-name">Tipo de Disipador</td><td class="spec-val">${specs.type}</td></tr>
       <tr><td class="spec-name">Diámetro / Tamaño del Ventilador</td><td class="spec-val">${specs.size}</td></tr>
     `;
   } else if (specs.type === 'monitor') {
@@ -481,27 +458,6 @@ function renderProductDetail() {
       <tr><td class="spec-name">Sistema Operativo</td><td class="spec-val">${specs.os}</td></tr>
       <tr><td class="spec-name">Color de Chasis</td><td class="spec-val">${specs.color}</td></tr>
     `;
-    // Campos adicionales solo disponibles con scraping nivel 2
-    if (p.hasRealSpecs) {
-      if (specs.gpu && specs.gpu !== 'N/D') {
-        tableHtml += `<tr><td class="spec-name">Tarjeta Gráfica</td><td class="spec-val">${specs.gpu}</td></tr>`;
-      }
-      if (specs.bateria && specs.bateria !== 'N/D') {
-        tableHtml += `<tr><td class="spec-name">Batería</td><td class="spec-val">${specs.bateria}</td></tr>`;
-      }
-      if (specs.puertos && specs.puertos !== 'N/D') {
-        tableHtml += `<tr><td class="spec-name">Puertos / Conectividad</td><td class="spec-val">${specs.puertos}</td></tr>`;
-      }
-      if (specs.camara && specs.camara !== 'N/D') {
-        tableHtml += `<tr><td class="spec-name">Cámara Web</td><td class="spec-val">${specs.camara}</td></tr>`;
-      }
-      if (specs.peso && specs.peso !== 'N/D') {
-        tableHtml += `<tr><td class="spec-name">Peso</td><td class="spec-val">${specs.peso}</td></tr>`;
-      }
-      if (specs.teclado && specs.teclado !== 'N/D') {
-        tableHtml += `<tr><td class="spec-name">Teclado</td><td class="spec-val">${specs.teclado}</td></tr>`;
-      }
-    }
   }
   tableHtml += `
     <tr>
@@ -511,7 +467,6 @@ function renderProductDetail() {
   `;
   specsTable.innerHTML = tableHtml;
 }
-
 
 // ============================================================
 // 3. PRODUCTOS RELACIONADOS (del backend)

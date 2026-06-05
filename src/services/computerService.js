@@ -1,52 +1,41 @@
-const { parseBrand, enrichProduct } = require('./productService');
+const { parseBrand, enrichProduct, BRAND_KEYWORDS_MAP } = require('./productService');
 
 function createComputerService(category, db) {
+  /**
+   * Filtra, ordena y pagina productos delegando completamente a SQLite.
+   * Reemplaza el getAllProducts() + .filter() + .sort() + .slice() en memoria.
+   * La carga de memoria pasa de O(N_total) a O(page_size) para esta función.
+   */
   async function filterProducts(options = {}) {
     const {
-      search = '', brands = [], minPrice = 0, maxPrice = Infinity,
-      sort = 'relevancia', page = 1, limit = 12,
+      search   = '',
+      brands   = [],
+      minPrice = 0,
+      maxPrice = Infinity,
+      sort     = 'relevancia',
+      page     = 1,
+      limit    = 12,
     } = options;
 
-    let products = await db.getAllProducts(category);
-
-    if (search || brands.length > 0 || minPrice > 0 || maxPrice < Infinity) {
-      const searchLower = search.toLowerCase();
-      products = products.filter(p => {
-        const name = (p.nombre || '').toLowerCase();
-        const sku = (p.sku || '').toLowerCase();
-        const brand = parseBrand(p.nombre);
-        const matchesSearch = !search || name.includes(searchLower) || sku.includes(searchLower) || brand.toLowerCase().includes(searchLower);
-        const matchesBrand = brands.length === 0 || brands.includes(brand);
-        const price = p.precio || 0;
-        const matchesPrice = price >= minPrice && price <= maxPrice;
-        return matchesSearch && matchesBrand && matchesPrice;
+    // Delegar todo a la capa SQL. db.getPaginatedProducts recibe
+    // brandKeywords para traducir marcas a condiciones LIKE en SQL.
+    const { rows, total, page: safePage, totalPages, limit: safeLimit } =
+      await db.getPaginatedProducts({
+        category,
+        search,
+        brands,
+        brandKeywords: BRAND_KEYWORDS_MAP,
+        minPrice,
+        maxPrice: maxPrice === Infinity ? 1e9 : maxPrice,
+        sort,
+        page,
+        limit,
       });
-    }
 
-    const total = products.length;
+    // Solo aplicamos enrichProduct sobre la página ya filtrada y paginada.
+    const products = rows.map(enrichProduct);
 
-    switch (sort) {
-      case 'precio-asc':
-        products.sort((a, b) => (a.precio || 0) - (b.precio || 0));
-        break;
-      case 'precio-desc':
-        products.sort((a, b) => (b.precio || 0) - (a.precio || 0));
-        break;
-      case 'recientes':
-        products.sort((a, b) => new Date(b.ultima_actualizacion) - new Date(a.ultima_actualizacion));
-        break;
-      default:
-        products.sort((a, b) => (a.sku || '').localeCompare(b.sku || ''));
-    }
-
-    const safePage = Math.max(1, page);
-    const safeLimit = Math.min(Math.max(1, limit), 100);
-    const totalPages = Math.ceil(total / safeLimit);
-    const startIndex = (safePage - 1) * safeLimit;
-    const paginatedProducts = products.slice(startIndex, startIndex + safeLimit);
-    const enrichedProducts = paginatedProducts.map(enrichProduct);
-
-    return { products: enrichedProducts, total, page: safePage, totalPages, limit: safeLimit };
+    return { products, total, page: safePage, totalPages, limit: safeLimit };
   }
 
   async function getBrandCounts() {

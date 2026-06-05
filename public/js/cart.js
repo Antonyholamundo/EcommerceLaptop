@@ -60,11 +60,22 @@ function setupCartDrawerEvents() {
         return;
       }
       
-      // Redirigir al e-commerce Tecnomegastore
-      // Usamos el primer artículo como referencia o la búsqueda general de laptops en Tecnomegastore
-      const firstItem = cart[0];
-      const targetUrl = `https://tecnomegastore.ec/product/laptop?code=${firstItem.sku}`;
-      window.open(targetUrl, '_blank', 'noopener');
+      // Construir mensaje de WhatsApp
+      let message = 'Hola, estoy interesado en comprar los siguientes productos de NoteStore Ecuador:\n\n';
+      cart.forEach((item, index) => {
+        const itemCat = item.category || 'laptops';
+        const itemUrl = `${window.location.origin}/product.html?sku=${item.sku}&cat=${itemCat}`;
+        message += `${index + 1}. *${item.name}* (SKU: ${item.sku})\n`;
+        message += `   Cantidad: ${item.quantity} | Precio: $${item.price.toFixed(2)}\n`;
+        message += `   Enlace: ${itemUrl}\n\n`;
+      });
+      
+      const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      message += `*Total estimado:* $${subtotal.toFixed(2)}`;
+      
+      const phoneNumber = '593999921624'; // WhatsApp de NoteStore Ecuador (0999921624)
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank', 'noopener');
     });
   }
 }
@@ -83,8 +94,28 @@ function closeCart() {
   document.body.style.overflow = '';
 }
 
+// Detectar categoría basada en la página actual
+function detectCategoryFromPage() {
+  const path = window.location.pathname;
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  if (path.includes('motherboard.html')) return 'motherboards';
+  if (path.includes('monitores.html')) return 'monitores';
+  if (path.includes('gaming-monitores.html')) return 'gaming-monitores';
+  if (path.includes('computadoras.html')) return 'desktops';
+  if (path.includes('minipcs.html')) return 'minipcs';
+  if (path.includes('laptops.html')) return 'laptops';
+  if (path.includes('catalogo.html')) {
+    return urlParams.get('cat') || 'procesadores';
+  }
+  if (path.includes('product.html')) {
+    return urlParams.get('cat') || 'laptops';
+  }
+  return 'laptops';
+}
+
 // Añadir al Carrito (Disponible globalmente)
-window.addToCart = function(sku, name, price, imgUrl) {
+window.addToCart = function(sku, name, price, imgUrl, url) {
   const existing = cart.find(item => item.sku === sku);
   if (existing) {
     existing.quantity += 1;
@@ -94,6 +125,8 @@ window.addToCart = function(sku, name, price, imgUrl) {
       name,
       price: parseFloat(price),
       imgUrl,
+      url,
+      category: detectCategoryFromPage(),
       quantity: 1
     });
   }
