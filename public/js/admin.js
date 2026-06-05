@@ -1,5 +1,5 @@
 /**
- * admin.js — Lógica de panel admin de NoteStore Ecuador
+ * admin.js — Lógica de panel admin de Tienda Gamer EC
  * 
  * SIMPLIFICADO: La autenticación ahora es exclusivamente server-side.
  * El scraping devuelve JSON en vez de HTML.

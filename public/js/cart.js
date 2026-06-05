@@ -1,5 +1,5 @@
 /**
- * cart.js — Lógica de Carrito de Compras para NoteStore Ecuador
+ * cart.js — Lógica de Carrito de Compras para Tienda Gamer EC
  */
 
 // Estado del Carrito
@@ -27,7 +27,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Cargar desde localStorage
 function loadCartFromStorage() {
-  const stored = localStorage.getItem('notestore_cart');
+  const stored = localStorage.getItem('tiendagamerec_cart');
   if (stored) {
     try {
       cart = JSON.parse(stored);
@@ -41,7 +41,7 @@ function loadCartFromStorage() {
 
 // Guardar en localStorage
 function saveCartToStorage() {
-  localStorage.setItem('notestore_cart', JSON.stringify(cart));
+  localStorage.setItem('tiendagamerec_cart', JSON.stringify(cart));
   updateCartUI();
 }
 
@@ -61,7 +61,7 @@ function setupCartDrawerEvents() {
       }
       
       // Construir mensaje de WhatsApp
-      let message = 'Hola, estoy interesado en comprar los siguientes productos de NoteStore Ecuador:\n\n';
+      let message = 'Hola, estoy interesado en comprar los siguientes productos de Tienda Gamer EC:\n\n';
       cart.forEach((item, index) => {
         const itemCat = item.category || 'laptops';
         const itemUrl = `${window.location.origin}/product.html?sku=${item.sku}&cat=${itemCat}`;
@@ -73,7 +73,7 @@ function setupCartDrawerEvents() {
       const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
       message += `*Total estimado:* $${subtotal.toFixed(2)}`;
       
-      const phoneNumber = '593999921624'; // WhatsApp de NoteStore Ecuador (0999921624)
+      const phoneNumber = '593999921624'; // WhatsApp de Tienda Gamer EC (0999921624)
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank', 'noopener');
     });

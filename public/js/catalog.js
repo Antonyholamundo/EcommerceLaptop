@@ -1,5 +1,5 @@
 /**
- * catalog.js — Lógica de catálogo para NoteStore Ecuador
+ * catalog.js — Lógica de catálogo para Tienda Gamer EC
  * 
  * SIMPLIFICADO: Este archivo solo se encarga de:
  *   - Renderizar los datos que llegan del API

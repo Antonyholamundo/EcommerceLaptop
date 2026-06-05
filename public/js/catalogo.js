@@ -67,7 +67,7 @@ window.addEventListener('DOMContentLoaded', () => {
     CATEGORY_NAME = 'Procesadores';
   }
 
-  if (pageTitle) pageTitle.textContent = `${CATEGORY_NAME} - NoteStore Ecuador`;
+  if (pageTitle) pageTitle.textContent = `${CATEGORY_NAME} - Tienda Gamer EC`;
   if (heroTitle) heroTitle.textContent = CATEGORY_NAME;
 
   setupCollapsibles();

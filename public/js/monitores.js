@@ -1,5 +1,5 @@
 /**
- * monitores.js — Lógica de catálogo de monitores para NoteStore Ecuador
+ * monitores.js — Lógica de catálogo de monitores para Tienda Gamer EC
  * 
  * SIMPLIFICADO: Solo renderiza datos que vienen enriquecidos del backend.
  * Endpoint: /api/monitors

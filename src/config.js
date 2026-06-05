@@ -1,5 +1,5 @@
 /**
- * config.js — Configuración centralizada de EcuaCOMPU / ScraperAgent v2
+ * config.js — Configuración centralizada de Tienda Gamer EC / ScraperAgent v2
  * Única fuente de verdad para constantes de dominio y configuración del servidor.
  */
 

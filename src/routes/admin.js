@@ -30,7 +30,7 @@ const adminAuth = basicAuth({
     [process.env.ADMIN_USER || 'admin']: process.env.ADMIN_PASSWORD || '',
   },
   challenge: true,           // Lanza el cuadro de diálogo nativo del navegador
-  realm: 'EcuaCOMPU Admin',  // Nombre que aparece en el diálogo
+  realm: 'Tienda Gamer EC Admin',  // Nombre que aparece en el diálogo
 });
 
 /**

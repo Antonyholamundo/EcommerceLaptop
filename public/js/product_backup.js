@@ -1,5 +1,5 @@
 /**
- * product.js — Lógica de Detalle de Producto para NoteStore Ecuador
+ * product.js — Lógica de Detalle de Producto para Tienda Gamer EC
  * 
  * SIMPLIFICADO: Solo renderiza datos que vienen enriquecidos del API.
  * Toda la lógica de negocio (parseBrand, parseSpecs, pricing) 

@@ -1,5 +1,5 @@
 /**
- * home.js — Lógica de la Página de Inicio para NoteStore Ecuador
+ * home.js — Lógica de la Página de Inicio para Tienda Gamer EC
  * Maneja la Barra de Categorías y el renderizado dinámico de carruseles de productos.
  */
 

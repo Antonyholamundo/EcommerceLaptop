@@ -1,5 +1,5 @@
 /**
- * server.js — Web Service puro (EcuaCOMPU)
+ * server.js — Web Service puro (Tienda Gamer EC)
  *
  * Responsabilidad única: inicializar la base de datos, montar las rutas
  * de Express y levantar el servidor HTTP.

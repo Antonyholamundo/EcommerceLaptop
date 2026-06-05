@@ -1,5 +1,5 @@
 /**
- * gaming-monitores.js — Lógica de catálogo de gaming monitores para NoteStore Ecuador
+ * gaming-monitores.js — Lógica de catálogo de gaming monitores para Tienda Gamer EC
  * 
  * Endpoint: /api/gaming-monitors
  */
