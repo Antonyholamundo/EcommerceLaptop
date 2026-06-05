@@ -1039,10 +1039,7 @@ select {
 }
 
 .list-card .card-sku {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  font-family: monospace;
-  margin-bottom: 0.15rem;
+  display: none !important;
 }
 
 .list-card .card-title {
@@ -1366,9 +1363,7 @@ select {
 }
 
 .cart-item-sku {
-  font-size: 0.6rem;
-  color: var(--text-muted);
-  font-family: monospace;
+  display: none !important;
 }
 
 .cart-item-controls {
@@ -1710,10 +1705,7 @@ footer {
 }
 
 .category-card .card-sku {
-  padding: 0.6rem 1rem 0;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  font-family: monospace;
+  display: none !important;
 }
 
 .category-card-title {
@@ -1896,9 +1888,7 @@ footer {
 }
 
 .info-sku-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-family: monospace;
+  display: none !important;
 }
 
 .info-title {

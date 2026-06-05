@@ -176,7 +176,7 @@ function renderProductDetail() {
   });
 
   // C. Títulos, SKU, Fechas
-  labelSku.textContent = `SKU: ${p.sku}`;
+  labelSku.style.display = 'none';
   titleProduct.textContent = p.nombre;
 
   if (p.ultima_actualizacion) {
@@ -191,7 +191,7 @@ function renderProductDetail() {
 
   // E. Botón Destino WhatsApp
   const productUrl = `${window.location.origin}/product.html?sku=${p.sku}&cat=${cat}`;
-  const whatsappMsg = `Hola, estoy interesado en este producto:\n\n*${p.nombre}*\nSKU: ${p.sku}\nPrecio: ${pricing.priceFormatted}\n\nEnlace del producto: ${productUrl}`;
+  const whatsappMsg = `Hola, estoy interesado en este producto:\n\n*${p.nombre}*\nPrecio: ${pricing.priceFormatted}\n\nEnlace del producto: ${productUrl}`;
   btnOriginDetail.href = `https://wa.me/593999921624?text=${encodeURIComponent(whatsappMsg)}`;
   btnOriginDetail.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.982L2 22l5.202-1.362a9.92 9.92 0 0 0 4.808 1.238h.005c5.507 0 9.99-4.478 9.99-9.986 0-2.67-1.037-5.18-2.92-7.062C17.201 2.946 14.685 2.001 12.012 2zm5.727 14.072c-.252.708-1.465 1.298-2.023 1.393-.483.082-.942.34-3.076-.499-2.73-1.074-4.464-3.83-4.599-4.015-.136-.184-1.1-1.455-1.1-2.775 0-1.32.691-1.968.936-2.228.246-.26.54-.324.72-.324h.519c.164 0 .385-.062.599.453.22.528.75 1.83.815 1.963.064.134.108.29.02.467-.089.177-.134.29-.267.447-.134.156-.282.346-.4.494-.134.168-.275.352-.119.62.156.268.694 1.144 1.488 1.848.79.7 1.457.917 1.724 1.052.267.134.423.111.579-.068.156-.18.668-.78.846-1.047.178-.268.357-.223.599-.134.244.09 1.545.727 1.812.86.267.135.446.202.513.314.067.112.067.652-.185 1.36z"/></svg>Comprar por WhatsApp`;
 
@@ -503,12 +503,6 @@ function renderProductDetail() {
       }
     }
   }
-  tableHtml += `
-    <tr>
-      <td class="spec-name">Identificador SKU</td>
-      <td class="spec-val" style="font-family:monospace;">${p.sku}</td>
-    </tr>
-  `;
   specsTable.innerHTML = tableHtml;
 }
 

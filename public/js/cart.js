@@ -65,7 +65,7 @@ function setupCartDrawerEvents() {
       cart.forEach((item, index) => {
         const itemCat = item.category || 'laptops';
         const itemUrl = `${window.location.origin}/product.html?sku=${item.sku}&cat=${itemCat}`;
-        message += `${index + 1}. *${item.name}* (SKU: ${item.sku})\n`;
+        message += `${index + 1}. *${item.name}*\n`;
         message += `   Cantidad: ${item.quantity} | Precio: $${item.price.toFixed(2)}\n`;
         message += `   Enlace: ${itemUrl}\n\n`;
       });
@@ -195,7 +195,6 @@ function updateCartUI() {
         <div class="cart-item-info">
           <div>
             <div class="cart-item-title" title="${item.name}">${item.name}</div>
-            <div class="cart-item-sku">${item.sku}</div>
           </div>
           <div class="cart-item-controls">
             <!-- Selector de Cantidad -->
