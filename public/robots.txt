@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tiendagamerec.up.railway.app/sitemap.xml

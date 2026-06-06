@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (deals.length > 0) {
         sections.push({
           title: 'Sigue comprando ofertas',
-          moreUrl: '/catalogo.html?cat=procesadores', // Enlace genérico a componentes
+          moreUrl: '/componentes/procesadores', // Enlace genérico a componentes
           products: deals.slice(0, 15)
         });
       }
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (laptops.length > 0) {
         sections.push({
           title: 'Laptops y Portátiles Destacados',
-          moreUrl: '/laptops.html',
+          moreUrl: '/laptops-gaming',
           products: laptops.slice(0, 12)
         });
       }
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (monitors.length > 0) {
         sections.push({
           title: 'Monitores de Oficina y Gaming',
-          moreUrl: '/monitores.html',
+          moreUrl: '/monitores',
           products: monitors.slice(0, 12)
         });
       }
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (motherboards.length > 0) {
         sections.push({
           title: 'Motherboards y Placas Base',
-          moreUrl: '/motherboard.html',
+          moreUrl: '/motherboards',
           products: motherboards.slice(0, 12)
         });
       }
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const bestSellers = allProducts.slice().sort((a, b) => b.precio - a.precio).slice(0, 15);
       sections.push({
         title: 'Los Más Vendidos de la Semana',
-        moreUrl: '/catalogo.html',
+        moreUrl: '/componentes/ram',
         products: bestSellers
       });
 
@@ -219,9 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       return `
-        <a href="/product.html?sku=${p.sku}&cat=${p.categoria}" class="pcard" title="${p.nombre}">
+        <a href="/producto/${p.categoria}/${p.sku}" class="pcard" title="${p.nombre}">
           <div class="pcard-image-wrapper">
-            <img src="${p.imagen_url || placeholderImg}" alt="${p.nombre}" loading="lazy" onerror="this.src='${placeholderImg}';this.onerror=null;">
+            <img src="${p.imagen_url || placeholderImg}" alt="${p.nombre} - Tienda Gamer EC" loading="lazy" onerror="this.src='${placeholderImg}';this.onerror=null;">
           </div>
           <h3 class="pcard-title">${p.nombre}</h3>
           
@@ -382,18 +382,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Traduce categoría al enlace de su catálogo
   function getMoreUrl(cat) {
     const urls = {
-      'desktops': '/computadoras.html',
-      'laptops': '/laptops.html',
-      'motherboards': '/motherboard.html',
-      'monitors': '/monitores.html',
-      'gaming-monitors': '/gaming-monitores.html',
-      'procesadores': '/catalogo.html?cat=procesadores',
-      'tarjetas-video': '/catalogo.html?cat=tarjetas-video',
-      'ram': '/catalogo.html?cat=ram',
-      'almacenamiento': '/catalogo.html?cat=almacenamiento',
-      'fuentes': '/catalogo.html?cat=fuentes',
-      'cases': '/catalogo.html?cat=cases'
+      'desktops': '/computadoras',
+      'laptops': '/laptops-gaming',
+      'motherboards': '/motherboards',
+      'monitors': '/monitores',
+      'gaming-monitors': '/monitores-gaming',
+      'procesadores': '/componentes/procesadores',
+      'tarjetas-video': '/componentes/tarjetas-video',
+      'ram': '/componentes/ram',
+      'almacenamiento': '/componentes/almacenamiento',
+      'fuentes': '/componentes/fuentes',
+      'cases': '/componentes/cases'
     };
-    return urls[cat] || `/catalogo.html?cat=${cat}`;
+    return urls[cat] || `/componentes/${cat}`;
   }
 });

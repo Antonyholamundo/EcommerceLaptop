@@ -9,20 +9,20 @@
 const laptopPlaceholderBase64 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlPSIjNkI3MjgwIiBzdHJva2Utd2lkdGg9IjEuMiI+PHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNOSAxNy4yNXYxLjAwN2EzIDMgMCAwIDEtLjg3OSAyLjEyMkw3LjUgMjFoOWwtLjYyMS0uNjIxQTMgMyAwIDAgMSAxNSAxOC4yNTdWMTcuMjVtNi0xMlYxNWEyLjI1IDIuMjUgMCAwIDEtMi4yNSAyLjI1SDUuMjVBMi4yNSAyLjI1IDAgMCAxIDMgMTVWNS4yNW0xOCAwQTIuMjUgMi4yNSAwIDAgMCAxOC43NSAzSDUuMjVBMi4yNSAyLjI1IDAgMCAwIDMgNS4yNW0xOCAwVjEyYTIuMjUgMi4yNSAwIDAgMS0yLjI1IDIuMjVINS4yNUEyLjI1IDIuMjUgMCAwIDEgMyAxMlY1LjI1IiAvPjwvc3ZnPg==';
 
 const CATEGORY_MAP = {
-  laptops: { api: '/api/products', name: 'Laptops', url: '/laptops.html' },
-  desktops: { api: '/api/desktops', name: 'PC de Escritorio', url: '/computadoras.html' },
-  minipcs: { api: '/api/minipcs', name: 'Mini PCs', url: '/minipcs.html' },
-  motherboards: { api: '/api/motherboards', name: 'Motherboards', url: '/motherboard.html' },
-  procesadores: { api: '/api/components/procesadores', name: 'Procesadores', url: '/catalogo.html?cat=procesadores' },
-  'tarjetas-video': { api: '/api/components/tarjetas-video', name: 'Tarjetas de Video', url: '/catalogo.html?cat=tarjetas-video' },
-  fuentes: { api: '/api/components/fuentes', name: 'Fuentes de Poder', url: '/catalogo.html?cat=fuentes' },
-  coolers: { api: '/api/components/coolers', name: 'Coolers y Enfriamiento', url: '/catalogo.html?cat=coolers' },
-  almacenamiento: { api: '/api/components/almacenamiento', name: 'Almacenamiento', url: '/catalogo.html?cat=almacenamiento' },
-  ram: { api: '/api/components/ram', name: 'Memorias RAM', url: '/catalogo.html?cat=ram' },
-  cases: { api: '/api/components/cases', name: 'Cases y Gabinetes', url: '/catalogo.html?cat=cases' },
-  ventiladores: { api: '/api/components/ventiladores', name: 'Ventiladores', url: '/catalogo.html?cat=ventiladores' },
-  monitores: { api: '/api/monitors', name: 'Monitores', url: '/monitores.html' },
-  'gaming-monitores': { api: '/api/gaming-monitors', name: 'Gaming Monitores', url: '/gaming-monitores.html' },
+  laptops: { api: '/api/products', name: 'Laptops', url: '/laptops-gaming' },
+  desktops: { api: '/api/desktops', name: 'PC de Escritorio', url: '/computadoras' },
+  minipcs: { api: '/api/minipcs', name: 'Mini PCs', url: '/mini-pcs' },
+  motherboards: { api: '/api/motherboards', name: 'Motherboards', url: '/motherboards' },
+  procesadores: { api: '/api/components/procesadores', name: 'Procesadores', url: '/componentes/procesadores' },
+  'tarjetas-video': { api: '/api/components/tarjetas-video', name: 'Tarjetas de Video', url: '/componentes/tarjetas-video' },
+  fuentes: { api: '/api/components/fuentes', name: 'Fuentes de Poder', url: '/componentes/fuentes' },
+  coolers: { api: '/api/components/coolers', name: 'Coolers y Enfriamiento', url: '/componentes/coolers' },
+  almacenamiento: { api: '/api/components/almacenamiento', name: 'Almacenamiento', url: '/componentes/almacenamiento' },
+  ram: { api: '/api/components/ram', name: 'Memorias RAM', url: '/componentes/ram' },
+  cases: { api: '/api/components/cases', name: 'Cases y Gabinetes', url: '/componentes/cases' },
+  ventiladores: { api: '/api/components/ventiladores', name: 'Ventiladores', url: '/componentes/ventiladores' },
+  monitores: { api: '/api/monitors', name: 'Monitores', url: '/monitores' },
+  'gaming-monitores': { api: '/api/gaming-monitors', name: 'Gaming Monitores', url: '/monitores-gaming' },
 };
 const DEFAULT_CATEGORY = 'laptops';
 
@@ -66,8 +66,20 @@ const tabPanelShipping = document.getElementById('tab-panel-shipping');
 
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const sku = urlParams.get('sku');
-  const cat = urlParams.get('cat') || DEFAULT_CATEGORY;
+  let sku = urlParams.get('sku');
+  let cat = urlParams.get('cat') || DEFAULT_CATEGORY;
+
+  const path = window.location.pathname;
+  if (path.includes('/producto/')) {
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length >= 3) {
+      cat = parts[1];
+      sku = parts[2];
+    } else if (parts.length === 2) {
+      sku = parts[1];
+      cat = DEFAULT_CATEGORY;
+    }
+  }
 
   if (!sku) {
     render404('SKU de producto no especificado');
@@ -118,6 +130,95 @@ async function fetchProductDetail(sku, cat) {
 // 2. RENDERIZADO (solo presentación, datos ya procesados)
 // ============================================================
 
+function updateProductSEOMetadata(p, cat) {
+  const brand = p.brand;
+  const name = p.nombre;
+  const price = p.pricing ? p.pricing.priceFormatted : `$${p.precio.toFixed(2)}`;
+  const title = `Comprar ${name} en Ecuador | Tienda Gamer EC`;
+  const description = `Adquiere ${name} de la marca ${brand} en Ecuador por solo ${price}. Envíos a todo el país y garantía local en Tienda Gamer EC.`;
+  const canonicalUrl = `${window.location.origin}/producto/${cat}/${p.sku}`;
+  const imageUrl = p.imagen_url || '';
+
+  // 1. Title
+  document.title = title;
+  const pageTitleEl = document.getElementById('page-title');
+  if (pageTitleEl) pageTitleEl.textContent = title;
+
+  // 2. Meta description
+  const metaDescEl = document.getElementById('meta-description');
+  if (metaDescEl) metaDescEl.content = description;
+
+  // 3. Canonical Link
+  const canonicalEl = document.getElementById('canonical-link');
+  if (canonicalEl) canonicalEl.href = canonicalUrl;
+
+  // 4. Open Graph Tags
+  const ogTitle = document.getElementById('og-title');
+  if (ogTitle) ogTitle.content = title;
+
+  const ogDescription = document.getElementById('og-description');
+  if (ogDescription) ogDescription.content = description;
+
+  const ogUrl = document.getElementById('og-url');
+  if (ogUrl) ogUrl.content = canonicalUrl;
+
+  const ogImage = document.getElementById('og-image');
+  if (ogImage && imageUrl) ogImage.content = imageUrl;
+
+  // 5. Twitter Card Tags
+  const twitterTitle = document.getElementById('twitter-title');
+  if (twitterTitle) twitterTitle.content = title;
+
+  const twitterDescription = document.getElementById('twitter-description');
+  if (twitterDescription) twitterDescription.content = description;
+
+  const twitterUrl = document.getElementById('twitter-url');
+  if (twitterUrl) twitterUrl.content = canonicalUrl;
+
+  const twitterImage = document.getElementById('twitter-image');
+  if (twitterImage && imageUrl) twitterImage.content = imageUrl;
+
+  // 6. JSON-LD Product Schema
+  const existingSchema = document.getElementById('dynamic-product-schema');
+  if (existingSchema) {
+    existingSchema.remove();
+  }
+
+  const schemaScript = document.createElement('script');
+  schemaScript.id = 'dynamic-product-schema';
+  schemaScript.type = 'application/ld+json';
+
+  const productSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": name,
+    "image": imageUrl ? [imageUrl] : [],
+    "description": description,
+    "sku": p.sku,
+    "mpn": p.sku,
+    "brand": {
+      "@type": "Brand",
+      "name": brand
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": canonicalUrl,
+      "priceCurrency": "USD",
+      "price": p.precio,
+      "priceValidUntil": "2027-12-31",
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": "https://schema.org/InStock",
+      "seller": {
+        "@type": "Store",
+        "name": "Tienda Gamer EC"
+      }
+    }
+  };
+
+  schemaScript.textContent = JSON.stringify(productSchema, null, 2);
+  document.head.appendChild(schemaScript);
+}
+
 function renderProductDetail() {
   const p = currentProduct;
   // Los datos brand, specs y pricing ya vienen del backend
@@ -127,6 +228,9 @@ function renderProductDetail() {
 
   const cat = p._category || DEFAULT_CATEGORY;
   const catInfo = CATEGORY_MAP[cat] || CATEGORY_MAP[DEFAULT_CATEGORY];
+
+  // Update dynamic SEO metadata and Product Schema
+  updateProductSEOMetadata(p, cat);
 
   breadcrumbCurrent.textContent = p.nombre;
   breadcrumbDisplay.innerHTML = `
@@ -143,6 +247,7 @@ function renderProductDetail() {
 
   // Set initial main image
   imgProduct.src = imageUrls[0];
+  imgProduct.alt = `${p.nombre} - Tienda Gamer EC`;
   imgProduct.onerror = () => {
     imgProduct.src = laptopPlaceholderBase64;
   };
@@ -153,7 +258,7 @@ function renderProductDetail() {
   // Render thumbnails for all image URLs
   thumbnailsRow.innerHTML = imageUrls.map((url, idx) => `
     <div class="thumbnail-box ${idx === 0 ? 'active' : ''}" data-index="${idx}">
-      <img src="${url}" alt="Miniatura ${idx + 1}" onerror="this.src='${laptopPlaceholderBase64}'">
+      <img src="${url}" alt="${p.nombre} - Vista ${idx + 1}" onerror="this.src='${laptopPlaceholderBase64}'">
     </div>
   `).join('');
 
@@ -172,6 +277,7 @@ function renderProductDetail() {
       }
       
       imgProduct.src = selectedUrl;
+      imgProduct.alt = `${p.nombre} - Tienda Gamer EC - Vista ${index + 1}`;
     });
   });
 
@@ -190,7 +296,7 @@ function renderProductDetail() {
   priceRefProduct.textContent = pricing.referencePriceFormatted;
 
   // E. Botón Destino WhatsApp
-  const productUrl = `${window.location.origin}/product.html?sku=${p.sku}&cat=${cat}`;
+  const productUrl = `${window.location.origin}/producto/${cat}/${p.sku}`;
   const whatsappMsg = `Hola, estoy interesado en este producto:\n\n*${p.nombre}*\nPrecio: ${pricing.priceFormatted}\n\nEnlace del producto: ${productUrl}`;
   btnOriginDetail.href = `https://wa.me/593999921624?text=${encodeURIComponent(whatsappMsg)}`;
   btnOriginDetail.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.982L2 22l5.202-1.362a9.92 9.92 0 0 0 4.808 1.238h.005c5.507 0 9.99-4.478 9.99-9.986 0-2.67-1.037-5.18-2.92-7.062C17.201 2.946 14.685 2.001 12.012 2zm5.727 14.072c-.252.708-1.465 1.298-2.023 1.393-.483.082-.942.34-3.076-.499-2.73-1.074-4.464-3.83-4.599-4.015-.136-.184-1.1-1.455-1.1-2.775 0-1.32.691-1.968.936-2.228.246-.26.54-.324.72-.324h.519c.164 0 .385-.062.599.453.22.528.75 1.83.815 1.963.064.134.108.29.02.467-.089.177-.134.29-.267.447-.134.156-.282.346-.4.494-.134.168-.275.352-.119.62.156.268.694 1.144 1.488 1.848.79.7 1.457.917 1.724 1.052.267.134.423.111.579-.068.156-.18.668-.78.846-1.047.178-.268.357-.223.599-.134.244.09 1.545.727 1.812.86.267.135.446.202.513.314.067.112.067.652-.185 1.36z"/></svg>Comprar por WhatsApp`;
@@ -532,17 +638,17 @@ async function fetchRelatedProducts(sku) {
       const formattedPrice = p.pricing.priceFormatted;
       const brand = p.brand;
 
-      const imgHtml = `<img src="${p.imagen_url || laptopPlaceholderBase64}" alt="${p.nombre}" loading="lazy" onerror="this.src='${laptopPlaceholderBase64}';this.onerror=null;">`;
+      const imgHtml = `<img src="${p.imagen_url || laptopPlaceholderBase64}" alt="${p.nombre} - Tienda Gamer EC" loading="lazy" onerror="this.src='${laptopPlaceholderBase64}';this.onerror=null;">`;
 
       return `
         <div class="grid-card" style="width:260px;margin-bottom:0;">
           <div class="card-image-wrapper">
             <span class="brand-badge">${brand}</span>
-            <a href="/product.html?sku=${p.sku}&cat=${cat}">${imgHtml}</a>
+            <a href="/producto/${cat}/${p.sku}">${imgHtml}</a>
           </div>
           <div class="card-sku">${p.sku}</div>
           <h3 class="card-title" title="${p.nombre}">
-            <a href="/product.html?sku=${p.sku}&cat=${cat}">${p.nombre}</a>
+            <a href="/producto/${cat}/${p.sku}">${p.nombre}</a>
           </h3>
           <div class="card-price-row">
             <div class="card-price">${formattedPrice}</div>

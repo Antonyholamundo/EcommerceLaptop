@@ -54,7 +54,15 @@ const CATEGORY_MAP = {
 
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const catParam = urlParams.get('cat');
+  let catParam = urlParams.get('cat');
+  
+  const path = window.location.pathname;
+  if (path.startsWith('/componentes/')) {
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      catParam = parts[1];
+    }
+  }
   
   if (catParam && CATEGORY_MAP[catParam]) {
     CATEGORY = catParam;
@@ -67,8 +75,7 @@ window.addEventListener('DOMContentLoaded', () => {
     CATEGORY_NAME = 'Procesadores';
   }
 
-  if (pageTitle) pageTitle.textContent = `${CATEGORY_NAME} - Tienda Gamer EC`;
-  if (heroTitle) heroTitle.textContent = CATEGORY_NAME;
+  updateSEOMetadata(CATEGORY, CATEGORY_NAME);
 
   setupCollapsibles();
   setupViewToggle();
@@ -88,6 +95,54 @@ window.addEventListener('DOMContentLoaded', () => {
     searchBox.value = searchParam;
   }
 });
+
+function updateSEOMetadata(category, categoryName) {
+  const title = `${categoryName} en Ecuador | Componentes de Hardware - Tienda Gamer EC`;
+  const description = `Compra ${categoryName.toLowerCase()} en Ecuador al mejor precio. Componentes de hardware 100% garantizados para tu PC gamer en Tienda Gamer EC.`;
+  const canonicalUrl = `${window.location.origin}/componentes/${category}`;
+
+  // Update Document Title
+  document.title = title;
+
+  // Update DOM Title Elements if they exist
+  if (pageTitle) pageTitle.textContent = title;
+  if (heroTitle) heroTitle.textContent = categoryName;
+
+  // Update Meta Description
+  let metaDesc = document.querySelector('meta[name="description"]');
+  if (!metaDesc) {
+    metaDesc = document.createElement('meta');
+    metaDesc.name = 'description';
+    document.head.appendChild(metaDesc);
+  }
+  metaDesc.content = description;
+
+  // Update Canonical
+  let canonicalLink = document.querySelector('link[rel="canonical"]');
+  if (!canonicalLink) {
+    canonicalLink = document.createElement('link');
+    canonicalLink.rel = 'canonical';
+    document.head.appendChild(canonicalLink);
+  }
+  canonicalLink.href = canonicalUrl;
+
+  // Update Open Graph Tags
+  const ogTags = {
+    'og:title': title,
+    'og:description': description,
+    'og:url': canonicalUrl
+  };
+
+  for (const [property, content] of Object.entries(ogTags)) {
+    let ogMeta = document.querySelector(`meta[property="${property}"]`);
+    if (!ogMeta) {
+      ogMeta = document.createElement('meta');
+      ogMeta.setAttribute('property', property);
+      document.head.appendChild(ogMeta);
+    }
+    ogMeta.content = content;
+  }
+}
 
 async function fetchProducts() {
   try {
@@ -179,18 +234,18 @@ function renderCatalogPage(products) {
     const brand = p.brand;
     const specs = p.specs;
 
-    const imageElement = `<img src="${p.imagen_url || placeholderBase64}" alt="${p.nombre}" loading="lazy" onerror="this.src='${placeholderBase64}';this.onerror=null;">`;
+    const imageElement = `<img src="${p.imagen_url || placeholderBase64}" alt="${p.nombre} - Tienda Gamer EC" loading="lazy" onerror="this.src='${placeholderBase64}';this.onerror=null;">`;
 
     if (isGrid) {
       return `
         <div class="grid-card">
           <div class="card-image-wrapper">
             <span class="brand-badge">${brand}</span>
-            <a href="/product.html?sku=${p.sku}&cat=${CATEGORY}">${imageElement}</a>
+            <a href="/producto/${CATEGORY}/${p.sku}">${imageElement}</a>
           </div>
           <div class="card-sku">${p.sku}</div>
           <h3 class="card-title" title="${p.nombre}">
-            <a href="/product.html?sku=${p.sku}&cat=${CATEGORY}">${p.nombre}</a>
+            <a href="/producto/${CATEGORY}/${p.sku}">${p.nombre}</a>
           </h3>
           
           <div class="stock-indicator">
@@ -219,12 +274,12 @@ function renderCatalogPage(products) {
         <div class="list-card">
           <div class="card-image-wrapper">
             <span class="brand-badge">${brand}</span>
-            <a href="/product.html?sku=${p.sku}&cat=${CATEGORY}">${imageElement}</a>
+            <a href="/producto/${CATEGORY}/${p.sku}">${imageElement}</a>
           </div>
           <div class="list-card-details">
             <div class="card-sku">${p.sku}</div>
             <h3 class="card-title" title="${p.nombre}" style="font-size:1rem;height:auto;-webkit-line-clamp:1;margin-bottom:0.25rem;">
-              <a href="/product.html?sku=${p.sku}&cat=${CATEGORY}">${p.nombre}</a>
+              <a href="/producto/${CATEGORY}/${p.sku}">${p.nombre}</a>
             </h3>
             
             <div class="list-specs-container">

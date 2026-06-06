@@ -64,7 +64,7 @@ function setupCartDrawerEvents() {
       let message = 'Hola, estoy interesado en comprar los siguientes productos de Tienda Gamer EC:\n\n';
       cart.forEach((item, index) => {
         const itemCat = item.category || 'laptops';
-        const itemUrl = `${window.location.origin}/product.html?sku=${item.sku}&cat=${itemCat}`;
+        const itemUrl = `${window.location.origin}/producto/${itemCat}/${item.sku}`;
         message += `${index + 1}. *${item.name}*\n`;
         message += `   Cantidad: ${item.quantity} | Precio: $${item.price.toFixed(2)}\n`;
         message += `   Enlace: ${itemUrl}\n\n`;
@@ -99,16 +99,26 @@ function detectCategoryFromPage() {
   const path = window.location.pathname;
   const urlParams = new URLSearchParams(window.location.search);
   
-  if (path.includes('motherboard.html')) return 'motherboards';
-  if (path.includes('monitores.html')) return 'monitores';
-  if (path.includes('gaming-monitores.html')) return 'gaming-monitores';
-  if (path.includes('computadoras.html')) return 'desktops';
-  if (path.includes('minipcs.html')) return 'minipcs';
-  if (path.includes('laptops.html')) return 'laptops';
-  if (path.includes('catalogo.html')) {
+  if (path.includes('motherboard.html') || path.includes('/motherboards')) return 'motherboards';
+  if (path.includes('monitores.html') || path.includes('/monitores')) return 'monitores';
+  if (path.includes('gaming-monitores.html') || path.includes('/monitores-gaming')) return 'gaming-monitores';
+  if (path.includes('computadoras.html') || path.includes('/computadoras')) return 'desktops';
+  if (path.includes('minipcs.html') || path.includes('/mini-pcs')) return 'minipcs';
+  if (path.includes('laptops.html') || path.includes('/laptops-gaming')) return 'laptops';
+  if (path.includes('catalogo.html') || path.startsWith('/componentes/')) {
+    if (path.startsWith('/componentes/')) {
+      const parts = path.split('/');
+      return parts[2] || 'procesadores';
+    }
     return urlParams.get('cat') || 'procesadores';
   }
-  if (path.includes('product.html')) {
+  if (path.includes('product.html') || path.includes('/producto/')) {
+    if (path.includes('/producto/')) {
+      const parts = path.split('/').filter(Boolean);
+      if (parts.length >= 3) {
+        return parts[1];
+      }
+    }
     return urlParams.get('cat') || 'laptops';
   }
   return 'laptops';
@@ -184,7 +194,7 @@ function updateCartUI() {
     const fallbackSvg = `data:image/svg+xml;utf8,<svg class=%22laptop-placeholder-svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%221.2%22 xmlns=%22http://www.w3.org/2000/svg%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25%22 /></svg>`;
     
     const imgHtml = item.imgUrl ? 
-      `<img src="${item.imgUrl}" alt="${item.name}" onerror="this.src='${fallbackSvg}';this.onerror=null;">` : 
+      `<img src="${item.imgUrl}" alt="${item.name} - Tienda Gamer EC" onerror="this.src='${fallbackSvg}';this.onerror=null;">` : 
       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:36px;height:36px;opacity:0.6;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" /></svg>`;
 
     return `

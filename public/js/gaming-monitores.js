@@ -153,18 +153,18 @@ function renderCatalogPage(products) {
     const brand = p.brand;
     const specs = p.specs;
 
-    const imageElement = `<img src="${p.imagen_url || placeholderBase64}" alt="${p.nombre}" loading="lazy" onerror="this.src='${placeholderBase64}';this.onerror=null;">`;
+    const imageElement = `<img src="${p.imagen_url || placeholderBase64}" alt="${p.nombre} - Tienda Gamer EC" loading="lazy" onerror="this.src='${placeholderBase64}';this.onerror=null;">`;
 
     if (isGrid) {
       return `
         <div class="grid-card">
           <div class="card-image-wrapper">
             <span class="brand-badge">${brand}</span>
-            <a href="/product.html?sku=${p.sku}&cat=gaming-monitores">${imageElement}</a>
+            <a href="/producto/gaming-monitores/${p.sku}">${imageElement}</a>
           </div>
           <div class="card-sku">${p.sku}</div>
           <h3 class="card-title" title="${p.nombre}">
-            <a href="/product.html?sku=${p.sku}&cat=gaming-monitores">${p.nombre}</a>
+            <a href="/producto/gaming-monitores/${p.sku}">${p.nombre}</a>
           </h3>
           
           <div class="stock-indicator">
@@ -193,12 +193,12 @@ function renderCatalogPage(products) {
         <div class="list-card">
           <div class="card-image-wrapper">
             <span class="brand-badge">${brand}</span>
-            <a href="/product.html?sku=${p.sku}&cat=gaming-monitores">${imageElement}</a>
+            <a href="/producto/gaming-monitores/${p.sku}">${imageElement}</a>
           </div>
           <div class="list-card-details">
             <div class="card-sku">${p.sku}</div>
             <h3 class="card-title" title="${p.nombre}" style="font-size:1rem;height:auto;-webkit-line-clamp:1;margin-bottom:0.25rem;">
-              <a href="/product.html?sku=${p.sku}&cat=gaming-monitores">${p.nombre}</a>
+              <a href="/producto/gaming-monitores/${p.sku}">${p.nombre}</a>
             </h3>
             
             <div class="list-specs-container">

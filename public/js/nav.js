@@ -14,13 +14,17 @@
       }
     });
   });
-  var page = window.location.pathname.split('/').pop().split('?')[0] || 'index.html';
-  var map = {
-    'index.html': 'inicio', 'laptops.html': 'pc', 'computadoras.html': 'pc',
-    'minipcs.html': 'pc', 'motherboard.html': 'componentes', 'monitores.html': 'monitores',
-    'gaming-monitores.html': 'monitores', 'catalogo.html': 'componentes'
-  };
-  var active = map[page];
+  var pathname = window.location.pathname;
+  var active = null;
+  if (pathname === '/' || pathname === '/index.html' || pathname === '') {
+    active = 'inicio';
+  } else if (pathname.includes('laptops-gaming') || pathname.includes('laptops.html') || pathname.includes('computadoras') || pathname.includes('mini-pcs') || pathname.includes('minipcs.html')) {
+    active = 'pc';
+  } else if (pathname.includes('motherboards') || pathname.includes('motherboard.html') || pathname.includes('componentes') || pathname.includes('catalogo.html')) {
+    active = 'componentes';
+  } else if (pathname.includes('monitores') || pathname.includes('gaming-monitores.html')) {
+    active = 'monitores';
+  }
   if (active) {
     document.querySelectorAll('.nav-link[data-nav="' + active + '"]').forEach(function (el) {
       el.classList.add('active');
