@@ -33,6 +33,26 @@ const app = express();
 app.use(express.json());
 
 // ============================================================
+// MIDDLEWARE: Redirección HTTPS y desduplicación WWW (SEO)
+// ============================================================
+app.use((req, res, next) => {
+  // 1. Enforzar HTTPS en producción (detrás de un proxy)
+  const isHttp = req.headers['x-forwarded-proto'] === 'http';
+  
+  // 2. Detectar y quitar 'www.' de manera consistente
+  const host = req.headers.host || '';
+  const hasWww = host.startsWith('www.');
+  
+  if (isHttp || hasWww) {
+    const cleanHost = hasWww ? host.slice(4) : host;
+    const newUrl = `https://${cleanHost}${req.originalUrl}`;
+    return res.redirect(301, newUrl);
+  }
+  
+  next();
+});
+
+// ============================================================
 // PROTECCIÓN: Bloquear acceso directo a admin.html
 // ============================================================
 app.use((req, res, next) => {
