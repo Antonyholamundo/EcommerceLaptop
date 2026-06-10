@@ -436,6 +436,10 @@ async function handleScrapeGamingMonitors() {
 
   try {
     const response = await fetch('/api/scrape/gaming-monitors', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
     const result = await response.json();
 
     if (result.error) {
@@ -445,6 +449,8 @@ async function handleScrapeGamingMonitors() {
       console.log(`[Sync] Gaming Monitores: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastGamingMonitors();
       await fetchGamingMonitorCards();
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
     }
   } catch (error) {
     console.error('Error al ejecutar scrape gaming monitores:', error);
@@ -464,6 +470,10 @@ async function handleScrapeMonitors() {
 
   try {
     const response = await fetch('/api/scrape/monitors', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
     const result = await response.json();
 
     if (result.error) {
@@ -473,6 +483,8 @@ async function handleScrapeMonitors() {
       console.log(`[Sync] Monitores: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastMonitors();
       await fetchMonitorCards();
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
     }
   } catch (error) {
     console.error('Error al ejecutar scrape monitores:', error);
@@ -538,6 +550,10 @@ async function handleScrape() {
 
   try {
     const response = await fetch('/api/scrape', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
     const result = await response.json();
 
     if (result.error) {
@@ -548,6 +564,8 @@ async function handleScrape() {
       console.log(`[Sync] Laptops: +${result.summary?.inserted ?? 0} insertados, ~${result.summary?.updated ?? 0} actualizados, -${result.summary?.deleted ?? 0} eliminados`);
       await fetchLastProducts();
       await fetchCatalogCards();
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
     }
   } catch (error) {
     console.error('Error al ejecutar scrape:', error);
@@ -567,6 +585,10 @@ async function handleScrapeDesktops() {
 
   try {
     const response = await fetch('/api/scrape/desktops', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
     const result = await response.json();
 
     if (result.error) {
@@ -576,6 +598,8 @@ async function handleScrapeDesktops() {
       console.log(`[Sync] Desktops: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastDesktops();
       await fetchDesktopCards();
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
     }
   } catch (error) {
     console.error('Error al ejecutar scrape desktops:', error);
@@ -595,6 +619,10 @@ async function handleScrapeMinipcs() {
 
   try {
     const response = await fetch('/api/scrape/minipcs', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
     const result = await response.json();
 
     if (result.error) {
@@ -604,6 +632,8 @@ async function handleScrapeMinipcs() {
       console.log(`[Sync] Mini PCs: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastMinipcs();
       await fetchMinipcCards();
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
     }
   } catch (error) {
     console.error('Error al ejecutar scrape minipcs:', error);
@@ -623,6 +653,10 @@ async function handleScrapeMotherboards() {
 
   try {
     const response = await fetch('/api/scrape/motherboards', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
     const result = await response.json();
 
     if (result.error) {
@@ -632,6 +666,8 @@ async function handleScrapeMotherboards() {
       console.log(`[Sync] Motherboards: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
       await fetchLastMotherboards();
       await fetchMotherboardCards();
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
     }
   } catch (error) {
     console.error('Error al ejecutar scrape motherboards:', error);
@@ -651,6 +687,10 @@ async function handleScrapeComponents() {
 
   try {
     const response = await fetch('/api/scrape/components', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
     const result = await response.json();
 
     if (result.error) {
@@ -670,6 +710,8 @@ async function handleScrapeComponents() {
       await fetchComponentCards('ram',            'tabla-ram');
       await fetchComponentCards('cases',          'tabla-cases');
       await fetchComponentCards('ventiladores',   'tabla-ventiladores');
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
     }
   } catch (error) {
     console.error('Error al ejecutar scrape componentes:', error);
@@ -727,6 +769,133 @@ async function fetchComponentCards(cat, containerId) {
   }
 }
 
+// ── Historial y Observabilidad de Syncs (Panel Admin) ──────────────────────────
+async function fetchSyncHistory() {
+  try {
+    const response = await fetch('/api/scrape/status?limit=10');
+    if (response.status === 401) {
+      document.getElementById('sync-history-tbody').innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align:center;padding:1.5rem;color:#ef4444;font-weight:600;">
+            No autorizado. La sesión ha expirado o las credenciales no son válidas.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    if (!response.ok) throw new Error('Error al cargar historial');
+    const data = await response.json();
+    const tbody = document.getElementById('sync-history-tbody');
+    
+    if (!data.syncs || data.syncs.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align:center;padding:2rem;color:#6a6a7a;">
+            No hay registros de sincronizaciones previas en la base de datos.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = data.syncs.map(s => {
+      const start = new Date(s.started_at);
+      const end = s.finished_at ? new Date(s.finished_at) : null;
+      let durationStr = 'En curso...';
+      if (end) {
+        const diffMs = end - start;
+        if (diffMs < 60000) {
+          durationStr = `${(diffMs / 1000).toFixed(1)}s`;
+        } else {
+          const mins = Math.floor(diffMs / 60000);
+          const secs = ((diffMs % 60000) / 1000).toFixed(0);
+          durationStr = `${mins}m ${secs}s`;
+        }
+      }
+      const sum = s.summary || {};
+      const errorsCount = sum.errors || 0;
+      const resultText = `+${sum.inserted || 0} | ~${sum.updated || 0} | -${sum.deleted || 0} | ❌${errorsCount}`;
+      const color = errorsCount > 0 ? '#f87171' : '#4ade80';
+
+      return `
+        <tr>
+          <td style="font-family:monospace;font-size:0.75rem;color:#6a6a7a;">${s.sync_id.substring(0, 8)}...</td>
+          <td style="color:#ffffff;text-transform:capitalize;font-weight:600;">${s.category}</td>
+          <td>${s.started_at.replace('T', ' ').substring(0, 19)}</td>
+          <td>${durationStr}</td>
+          <td><span style="font-weight:700;color:${color};">${resultText}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error al cargar historial de syncs:', error);
+    document.getElementById('sync-history-tbody').innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center;padding:1.5rem;color:#ef4444;">
+          Error al conectar con el servidor para obtener el historial.
+        </td>
+      </tr>
+    `;
+  }
+}
+
+async function fetchScrapeErrors() {
+  try {
+    const response = await fetch('/api/scrape/errors?limit=15');
+    if (response.status === 401) {
+      document.getElementById('scrape-errors-tbody').innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align:center;padding:1.5rem;color:#ef4444;font-weight:600;">
+            No autorizado. La sesión ha expirado o las credenciales no son válidas.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    if (!response.ok) throw new Error('Error al cargar errores');
+    const data = await response.json();
+    const tbody = document.getElementById('scrape-errors-tbody');
+    
+    if (!data.errors || data.errors.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" style="text-align:center;padding:2rem;color:#6a6a7a;">
+            No hay errores recientes de raspado registrados. ¡Todo limpio!
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = data.errors.map(e => {
+      const link = e.url ? `<a href="${e.url}" target="_blank" style="color:#3b82f6;text-decoration:underline;">Ver origen</a>` : 'N/A';
+      const skuBadge = e.sku ? `<span class="badge-sku" style="background:#ef4444;color:#fff;padding:0.1rem 0.35rem;border-radius:3px;font-size:0.7rem;font-family:monospace;margin-right:0.5rem;">${e.sku}</span>` : '';
+      
+      return `
+        <tr>
+          <td>${e.timestamp.replace('T', ' ').substring(0, 19)}</td>
+          <td>
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:0.25rem;">
+              ${skuBadge} ${link}
+            </div>
+          </td>
+          <td style="text-align:center;font-weight:600;">${e.retries}</td>
+          <td style="color:#f87171;font-size:0.8rem;max-width:450px;word-break:break-word;">${e.error}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error al cargar errores de scrape:', error);
+    document.getElementById('scrape-errors-tbody').innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align:center;padding:1.5rem;color:#ef4444;">
+          Error al conectar con el servidor para obtener los errores de raspado.
+        </td>
+      </tr>
+    `;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // ── Datos principales al cargar ─────────────────────────────────────────
   fetchLastProducts();
@@ -751,6 +920,20 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchComponentCards('ram',            'tabla-ram');
   fetchComponentCards('cases',          'tabla-cases');
   fetchComponentCards('ventiladores',   'tabla-ventiladores');
+
+  // ── Historial y Errores al cargar ───────────────────────────────────────
+  fetchSyncHistory();
+  fetchScrapeErrors();
+
+  // ── Botones de actualización de historial/errores ───────────────────────
+  const refreshSyncsBtn = document.getElementById('btn-refresh-syncs');
+  if (refreshSyncsBtn) {
+    refreshSyncsBtn.addEventListener('click', fetchSyncHistory);
+  }
+  const refreshErrorsBtn = document.getElementById('btn-refresh-errors');
+  if (refreshErrorsBtn) {
+    refreshErrorsBtn.addEventListener('click', fetchScrapeErrors);
+  }
 
   // ── Botones de scraping ─────────────────────────────────────────────────
   const scrapeBtn = document.getElementById('scrape-btn');
