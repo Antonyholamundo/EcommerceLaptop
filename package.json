@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
-    "scrape": "node src/run-scraper.js"
+    "scrape": "node src/run-scraper.js",
+    "postinstall": "npx playwright install --with-deps"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
