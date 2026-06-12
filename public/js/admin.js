@@ -541,6 +541,39 @@ async function fetchMotherboardCards() {
   }
 }
 
+async function handleScrapeStorage() {
+  const btn = document.getElementById('scrape-storage-btn');
+  const indicator = document.getElementById('loading-indicator');
+
+  btn.disabled = true;
+  indicator.style.opacity = '1';
+
+  try {
+    const response = await fetch('/api/scrape/almacenamiento', { method: 'POST' });
+    if (response.status === 401) {
+      alert('Sesión expirada o credenciales incorrectas. Por favor, recarga la página.');
+      return;
+    }
+    const result = await response.json();
+
+    if (result.error) {
+      console.error('Error de scraping almacenamiento:', result.error);
+      alert(`Error de Scraping: ${result.error}\n${result.message || ''}`);
+    } else {
+      console.log(`[Sync] Almacenamiento: +${result.summary?.inserted ?? 0} | ~${result.summary?.updated ?? 0} | -${result.summary?.deleted ?? 0}`);
+      await fetchComponentCards('almacenamiento', 'tabla-almacenamiento');
+      await fetchSyncHistory();
+      await fetchScrapeErrors();
+    }
+  } catch (error) {
+    console.error('Error al ejecutar scrape almacenamiento:', error);
+    alert('Error al conectar con el servidor para ejecutar el scraping.');
+  } finally {
+    btn.disabled = false;
+    indicator.style.opacity = '0';
+  }
+}
+
 async function handleScrape() {
   const btn = document.getElementById('scrape-btn');
   const indicator = document.getElementById('loading-indicator');
@@ -982,6 +1015,11 @@ document.addEventListener('DOMContentLoaded', () => {
     scrapeGamingMonitorsBtn.removeAttribute('hx-target');
     scrapeGamingMonitorsBtn.removeAttribute('hx-indicator');
     scrapeGamingMonitorsBtn.addEventListener('click', handleScrapeGamingMonitors);
+  }
+
+  const scrapeStorageBtn = document.getElementById('scrape-storage-btn');
+  if (scrapeStorageBtn) {
+    scrapeStorageBtn.addEventListener('click', handleScrapeStorage);
   }
 
   const scrapeComponentsBtn = document.getElementById('scrape-components-btn');
