@@ -263,7 +263,7 @@ function renderCatalogPage(products) {
             <button class="btn-primary-cart" onclick="addToCart('${p.sku}', '${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, '${p.imagen_url || ''}')">
               Agregar al carrito
             </button>
-            <a href="https://tecnomegastore.ec/product/laptop?code=${p.sku}" target="_blank" rel="noopener" class="btn-secondary-link">
+            <a href="${p.url}" target="_blank" rel="noopener" class="btn-secondary-link">
               Ver en tienda →
             </a>
           </div>
@@ -304,7 +304,7 @@ function renderCatalogPage(products) {
               <button class="btn-primary-cart" onclick="addToCart('${p.sku}', '${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, '${p.imagen_url || ''}')">
                 Agregar al carrito
               </button>
-              <a href="https://tecnomegastore.ec/product/laptop?code=${p.sku}" target="_blank" rel="noopener" class="btn-secondary-link">
+              <a href="${p.url}" target="_blank" rel="noopener" class="btn-secondary-link">
                 Ver en tienda →
               </a>
             </div>
